@@ -19,6 +19,7 @@
 - Impure functions may only be called from other, impure functions.
 - The entry-point can either be pure or impure
 - Inheritance and Interfaces
+- Compile-Time Extensions—scripts which can generate code to compile—note that this may only be done in new files according to an API for the AST
 
 ## Standard Library Contents
 
