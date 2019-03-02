@@ -44,7 +44,7 @@
 
 ### Pure Function
 
-    <modifier> func asdf(...) -> .:
+    <modifier> pure asdf(...) -> .:
         ...
         return .
 
