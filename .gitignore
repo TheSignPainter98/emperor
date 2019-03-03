@@ -60,6 +60,8 @@ temp/
 lex.yy.c
 y.tab.c
 y.tab.h
+y.output
+.emperor.yacc
 
 # Cython Things
 *.html

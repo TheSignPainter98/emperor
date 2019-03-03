@@ -2,55 +2,79 @@
  
 #include <stdio.h>
 #include "y.tab.h"
+
 int c;
 extern int yylval;
+
 %}
 %%
-" "       ;
+" "	;
+"."		{ return RADIX_POINT; }
+,		{ return LIST_SEPARATOR; }
+"("		{ return OPEN_PARENTH; }
+)		{ return CLOSE_PARENTH; }
+<		{ return OPEN_TYPE_ANNOT ;}
+>		{ return CLOSE_TYPE_ANNOT; }
+=		{ return DEFAULT_EQUALS; }
+->	{ return RETURNS; }
+[+-<>!&|*/]|&&|\|\||==|!=|=>|<=|>=|<=>	{ 
+	yylval = *yytext;
+	return OPERATOR; 
+}
 [lL] {
 	yylval = *yytext;
-	return(LONG_TAIL);
+	return LONG_TAIL;
 }
-[a-z] {
+'[a-z]' {
 	c = yytext[0];
 	yylval = c - 'a';
-	return(LETTER);
+	return LETTER;
 }
 [0-9] {
 	c = yytext[0];
 	yylval = c - '0';
-	return(DIGIT);
+	return DIGIT;
 }
-(public|private|protected) {
+public|private|protected {
 	c = yytext[0];
 	yylval = c;
-	return(ACCESS_MODIFIER);
+	return ACCESS_MODIFIER;
 }
 pure {
 	yylval = *yytext;
-	return(PURITY_PURE);
+	return PURITY_PURE;
 }
 impure {
 	yylval = *yytext;
-	return(PURITY_IMPURE);
+	return PURITY_IMPURE;
 }
-(int|bool|real|long|char) {
+int|bool|real|long|char {
 	yylval = *yytext;
-	return(PRIMITIVE_TYPE);
+	return PRIMITIVE_TYPE;
 }
-(true|false) {
-	yylval = *yytext;
-	return(BOOLEAN);
+true|false {
+	yylval = strcmp(*yytext, "true") == 0 ? 1 : 0;
+	return BOOLEAN;
 }
-[01]* {
+0b[01]* {
 	yylval = atoi(yytext);
-	return(BITSEQUENCE_VALUE);
+	// Decode binary here
+	return BITSEQUENCE_VALUE;
 }
-[0-9A-Fa-f]* {
+0x[0-9A-Fa-f]* {
 	yylval = atoi(yytext);
-	return(HEX_VALUE);
+	// decode hex here
+	return HEX_VALUE;
 }
 [a-zA-z][a-zA-Z0-9_]* {
 	yylval = *yytext;
-	return(NAME);
+	return NAME;
 }
+%%
+
+int binaryToInt(const char* binary);
+int hexadecimalToInt(const char* hexadecimal);
+// Keywords: BLOCKS:	if, else, while, for, foreach, repeat,
+// Keywords: FUNCTIONS:	pure, impure
+// Keywords: MODIFIERS:	public, private, protected
+// Keywords: PACKAGES:	package	

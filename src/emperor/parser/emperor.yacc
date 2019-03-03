@@ -1,11 +1,19 @@
 %{
-#include <stdio.h>
-int regs[26];
-int base;
+	#include <stdio.h>
+	int currentLine = 1;
+	int currentChar = 1;
+	int yylex(void);
 %}
-// %start list
-// %start list
 %start typein
+%token RADIX_POINT
+%token OPEN_PARENTH
+%token CLOSE_PARENTH
+%token OPEN_TYPE_ANNOT
+%token CLOSE_TYPE_ANNOT
+%token LIST_SEPARATOR
+%token DEFAULT_EQUALS
+%token RETURNS
+%token OPERATOR
 %token DIGIT 
 %token LETTER
 %token ACCESS_MODIFIER
@@ -22,99 +30,34 @@ int base;
 %left '&'
 %left '+' '-'
 %left '*' '/' '%'
-%left UMINUS  /*supplies precedence for unary minus */
-%%                   /* beginning of rules section */
-typein: functioncall '\n';
-primitive_constant: number | real | BOOLEAN | bitsSequence | long;
+%left UMINUS	/*supplies precedence for unary minus */
+%%									 /* beginning of rules section */
+typein: HEX_VALUE '\n';
+primitive_constant: number | real | BOOLEAN | long | HEX_VALUE | BITSEQUENCE_VALUE;
 value: NAME | primitive_constant;
-valuelist: value | value ',' valuelist;
+valuelist: value | value LIST_SEPARATOR valuelist;
 maybevaluelist: | valuelist;
-functioncall: NAME '(' maybevaluelist ')';
-stat:    expr
-         {
-           printf("%d\n",$1);
-         }
-         |
-         LETTER '=' expr
-         {
-           regs[$1] = $3;
-         }
-         ;
-expr:    '(' expr ')'
-         {
-           $$ = $2;
-         }
-         |
-         expr '*' expr
-         {
-           $$ = $1 * $3;
-         }
-         |
-         expr '/' expr
-         {
-           $$ = $1 / $3;
-         }
-         |
-         expr '%' expr
-         {
-           $$ = $1 % $3;
-         }
-         |
-         expr '+' expr
-         {
-           $$ = $1 + $3;
-         }
-          |
-         expr '-' expr
-         {
-           $$ = $1 - $3;
-         }
-         |
-         expr '&' expr
-         {
-           $$ = $1 & $3;
-         }
-         |
-         expr '|' expr
-         {
-           $$ = $1 | $3;
-         }
-         |
-        '-' expr %prec UMINUS
-         {
-           $$ = -$2;
-         }
-         |
-         LETTER
-         {
-           $$ = regs[$1];
-         }
-         |
-         number
-         ;
-number:  DIGIT
-         {
-           $$ = $1;
-           base = ($1==0) ? 8 : 10;
-         }       |
-         number DIGIT
-         {
-           $$ = base * $1 + $2;
-         }
-         ;
-real:	number '.' number;
-bitsSequence: '0x' HEX_VALUE | '0b' BITSEQUENCE_VALUE;
+expression: value | expression OPERATOR expression;
+functioncall: NAME OPEN_PARENTH maybevaluelist CLOSE_PARENTH 
+{
+	printf("Function call: %d with arguments %d\n", $1, $2);
+};
+natural: DIGIT | DIGIT natural;
+number:	UMINUS natural | natural;
+real:	number RADIX_POINT number;
 long:	number LONG_TAIL;
-
-type: 	PRIMITIVE_TYPE | NAME | NAME '<' typelist '>';
-typelist:	type | type ',' typelist;
-pureFunction:	ACCESS_MODIFIER PURITY_PURE NAME'('type')' '->' type;
-impureFunction:	ACCESS_MODIFIER PURITY_IMPURE NAME'('type')' impureReturnAnnotation;
-impureReturnAnnotation: | '->' type;
+defaultvalue: | DEFAULT_EQUALS expression;
+parameterList:	type NAME defaultvalue;
+type: 	PRIMITIVE_TYPE | NAME | NAME OPEN_TYPE_ANNOT typeList CLOSE_TYPE_ANNOT;
+typeList:	type | type LIST_SEPARATOR typeList;
+functionSignature: pureFunction | impureFunction;
+pureFunction:	ACCESS_MODIFIER PURITY_PURE NAME OPEN_PARENTH typeList CLOSE_PARENTH RETURNS type;
+impureFunction:	ACCESS_MODIFIER PURITY_IMPURE NAME OPEN_PARENTH typeList CLOSE_PARENTH impureReturnAnnotation;
+impureReturnAnnotation: | RETURNS type;
 
 %%
 
-int main()
+int main(void)
 {
 	return(yyparse());
 }
@@ -125,7 +68,7 @@ char *s;
 	fprintf(stderr, "%s\n",s);
 }
 
-int yywrap()
+int yywrap(void)
 {
 	return(1);
 }

@@ -27,30 +27,30 @@
 - CSV parser
 - JSON Parser
 - Data-structures
-  - Collections
-    - List
-    - Set
-    - Map
-  - Iterators
-    - Group iterators (returns a list of elements (presents))
+	- Collections
+		- List
+		- Set
+		- Map
+	- Iterators
+		- Group iterators (returns a list of elements (presents))
 - Framework for unit-testing
 
 ## Example syntax:
 
 ### Let
 
-    <type> <const> <- <expression>
+		<type> <const> <- <expression>
 
-    <type> <variable> <- <expression>
+		<type> <variable> <- <expression>
 
 ### Pure Function
 
-    <modifier> pure asdf(...) -> .:
-        ...
-        return .
+		<modifier> pure asdf(...) -> .:
+				...
+				return .
 
 ### Impure Functions
-    <modifier> impure func asdf(...) -> :
-        ...
-        return .
+		<modifier> impure func asdf(...) -> :
+				...
+				return .
 
