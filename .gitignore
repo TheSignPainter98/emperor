@@ -58,9 +58,9 @@ temp/
 
 # Lex and Yacc Things
 lex.yy.c
-y.tab.c
-y.tab.h
-y.output
+*.tab.c*
+*.tab.h*
+*.output
 .emperor.yacc
 
 # Cython Things
