@@ -6,7 +6,7 @@
 	int yylex(void);
 	void yyerror(char* s);
 
-	extern struct yy_buffer_state* yy_scan_string(char * str);
+	extern struct yy_buffer_state* yy_scan_string(char* str);
 	extern void yy_delete_buffer(struct yy_buffer_state* buffer);
 %}
 %start program
