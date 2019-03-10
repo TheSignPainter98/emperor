@@ -2,73 +2,104 @@
 	#include <stdio.h>
 	int currentLine = 1;
 	int currentChar = 1;
+	int main(void);
 	int yylex(void);
 	void yyerror(char* s);
 
 	extern struct yy_buffer_state* yy_scan_string(char * str);
 	extern void yy_delete_buffer(struct yy_buffer_state* buffer);
 %}
-%start typein
-%token RADIX_POINT
+%start program
+
+%token EOL
+%token AT
+%token DOT
+%token COMMA
 %token OPEN_PARENTH
 %token CLOSE_PARENTH
-%token OPEN_TYPE_ANNOT
-%token CLOSE_TYPE_ANNOT
-%token LIST_SEPARATOR
-%token DEFAULT_EQUALS
+%token OPEN_SQUARE_BRACKET
+%token CLOSE_SQUARE_BRACKET
+%token OPEN_ANGLE
+%token CLOSE_ANGLE
+%token EQUALS
 %token RETURNS
-%token OPERATOR
-%token NUMBER 
-%token REAL 
-%token LETTER
-%token ACCESS_MODIFIER
-%token PURITY_PURE
-%token PURITY_IMPURE
-%token NAME
+%token GETS
+%token NUMBER
+%token REAL
+%token FUNCTION_PURITY
 %token PRIMITIVE_TYPE
-%token BOOLEAN
-%token LONG_TAIL
-%token HEX_VALUE
-%token BITSEQUENCE_VALUE
+%token OPEN_COMMENT
+%token CLOSE_COMMENT
+%token QUESTION_MARK
+%token COLON
+%token BINARY_OPERATOR
+%token VOID
+%token CHARACTER
+%token STRING
+%token NAME
 
+// %left "=>" "<=>"
+// %left "||"
+// %left "&&"
 %left '|'
 %left '&'
 %left '+' '-'
 %left '*' '/' '%'
 %left UMINUS	/*supplies precedence for unary minus */
-%%									 /* beginning of rules section */
-typein: NUMBER;
-// primitive_constant: NUMBER | REAL | BOOLEAN | long | HEX_VALUE | BITSEQUENCE_VALUE;
-// value: primitive_constant | NAME;
-// long:	NUMBER LONG_TAIL;
-// valuelist: value | value LIST_SEPARATOR valuelist;
-// maybevaluelist: | valuelist;
-// expression: value | expression OPERATOR expression;
-// functioncall: NAME OPEN_PARENTH maybevaluelist CLOSE_PARENTH 
-// {
-// 	// printf("Function call: %d with arguments %d\n", $1, $2);
-// };
-// defaultvalue: | DEFAULT_EQUALS expression;
-// parameterList:	type NAME defaultvalue;
-// type: 	PRIMITIVE_TYPE | NAME | NAME OPEN_TYPE_ANNOT typeList CLOSE_TYPE_ANNOT;
-// typeList:	type | type LIST_SEPARATOR typeList;
-// functionSignature: pureFunction | impureFunction;
-// pureFunction:	ACCESS_MODIFIER PURITY_PURE NAME OPEN_PARENTH typeList CLOSE_PARENTH RETURNS type;
-// impureFunction:	ACCESS_MODIFIER PURITY_IMPURE NAME OPEN_PARENTH typeList CLOSE_PARENTH impureReturnAnnotation;
-// impureReturnAnnotation: | RETURNS type;
 
+%%									 /* beginning of rules section */
+program: line | line EOL program;
+line: | functionalLine | functionDeclarationLine;
+functionalLine: impureFunctionCall | assignment;
+functionDeclarationLine: FUNCTION_PURITY type NAME OPEN_PARENTH parameters CLOSE_PARENTH RETURNS returnType;
+type: PRIMITIVE_TYPE
+	| type OPEN_ANGLE type_list_non_zero CLOSE_ANGLE
+	| NAME;
+type_list_non_zero: type
+				  | type COMMA type_list_non_zero;
+parameters: 
+		  | parameters_non_zero;
+parameters_non_zero: parameter
+				   | parameter COMMA parameters_non_zero;
+parameter: type NAME;
+returnType: type
+		  | VOID;
+
+
+assignment: variable GETS expression;
+
+expression: value
+		  | functionCall
+		  | expression expression_tail;
+value: NUMBER
+	 | variable
+	 | CHARACTER
+	 | STRING;
+functionCall: pureFunctionCall
+			| impureFunctionCall;
+impureFunctionCall: AT pureFunctionCall;
+pureFunctionCall: NAME OPEN_PARENTH arguments CLOSE_PARENTH;
+expression_tail: BINARY_OPERATOR expression
+			   | QUESTION_MARK expression COLON expression;
+arguments: 
+		 | args_non_zero;
+args_non_zero: argument
+			 | argument COMMA args_non_zero;
+argument: expression;
+variable: NAME 
+		| variable OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET;
 %%
 
 int main(void)
 {
-	char* inputString = "0x143298";
-	printf("Running on string: '%s'\n", inputString);
-	struct yy_buffer_state* buffer = yy_scan_string(inputString);
-	int retval = yyparse();
-	yy_delete_buffer(buffer);
-	return retval;
+	// char* inputString = "asdf[asdf[12]] <- asdf\n";
+	// printf("Running on string: '%s'\n", inputString);
+	// struct yy_buffer_state* buffer = yy_scan_string(inputString);
+	// int retval = yyparse();
+	// yy_delete_buffer(buffer);
+	// return retval;
 	// printf("%s", "Type string for input > ");
-	// return yyparse();
+	return yyparse();
 }
 
 void yyerror(char* s)

@@ -10,19 +10,33 @@ extern int currentChar;
 
 %}
 %%
--?[0-9]+ 	 		{ return NUMBER; }
--?[0-9]+\.[0-9]* 	{ return REAL; }
+" "	;
+"\n"						{ return EOL; }
+"@"							{ return AT; }
+"."							{ return DOT; }
+","							{ return COMMA; }
+"("							{ return OPEN_PARENTH; }
+")"							{ return CLOSE_PARENTH; }
+"["							{ return OPEN_SQUARE_BRACKET; }
+"]"							{ return CLOSE_SQUARE_BRACKET; }
+"="							{ return EQUALS; }
+"->"						{ return RETURNS; }
+"<-"						{ return GETS; }
+-?[0-9]+ 	 				{ return NUMBER; }
+-?[0-9]+\.[0-9]+ 			{ return REAL; }
+pure|impure					{ return FUNCTION_PURITY; }
+int|real|boolean			{ return PRIMITIVE_TYPE; }
+"/*"						{ return OPEN_COMMENT; }
+"*/"						{ return CLOSE_COMMENT; }
+"?"							{ return QUESTION_MARK; }
+":"							{ return COLON; }
+"void"						{ return VOID; }
+\'(\\.|[^'\\])\'			{ return CHARACTER; }
+\"(\\.|[^"\\])*\"			{ return STRING; }
+[A-Za-z£][A-Za-z0-9£]* 		{ return NAME; }
 %%
-// " "	;
-// "."		{ return RADIX_POINT; }
-// ","		{ return LIST_SEPARATOR; }
-// "("		{ return OPEN_PARENTH; }
-// ")"		{ return CLOSE_PARENTH; }
-// "<"		{ return OPEN_TYPE_ANNOT; }
-// ">"		{ return CLOSE_TYPE_ANNOT; }
-// "="		{ return DEFAULT_EQUALS; }
-// ->		{ return RETURNS; }
-// "+"|"-"|"<"|">"|"!"|"&"|"|"|"*"|"/"|"&&"|"||"|"=="|"!="|"=>"|"<="|">="|"<=>"	{ 
+// "+"|"-"|"<"|">"|"!"|"&"|"|"|"*"|"/"|"&&"|"||"|"=="|"!="|"=>"|"<="|">="|"<=>"|">>"|"<<"|"<<<"
+// 							{ return BINARY_OPERATOR; }
 // 	yylval = *yytext;
 // 	return OPERATOR; 
 // }
