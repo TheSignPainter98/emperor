@@ -1,13 +1,12 @@
 %{
  
 #include <stdio.h>
-#include "emperor.tab.hacc"
+#include "emperor.tab.h"
 
 int c;
 extern int yylval;
 extern int currentLine;
 extern int currentChar;
-
 
 %}
 %x comment

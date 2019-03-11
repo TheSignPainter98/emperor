@@ -57,7 +57,7 @@ markdown-styles.css
 temp/
 
 # Lex and Yacc Things
-lex.yy.c
+*.yy.c
 *.tab.c*
 *.tab.h*
 *.output
