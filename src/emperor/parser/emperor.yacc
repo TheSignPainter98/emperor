@@ -26,8 +26,10 @@
 %token GETS
 %token NUMBER
 %token REAL
+%token BOOLEAN_VALUE
 %token FUNCTION_PURITY
 %token PRIMITIVE_TYPE
+%token ACCESS_MODIFIER
 %token OPEN_COMMENT
 %token CLOSE_COMMENT
 %token QUESTION_MARK
@@ -37,6 +39,7 @@
 %token CHARACTER
 %token STRING
 %token NAME
+%token WHITESPACE
 
 // %left "=>" "<=>"
 // %left "||"
@@ -49,7 +52,10 @@
 
 %%									 /* beginning of rules section */
 program: line | line EOL program;
-line: | functionalLine | functionDeclarationLine;
+line: startLineWhiteSpace lineContents;
+startLineWhiteSpace:
+				   | WHITESPACE startLineWhiteSpace;
+lineContents: | functionalLine | functionDeclarationLine;
 functionalLine: impureFunctionCall | assignment;
 functionDeclarationLine: FUNCTION_PURITY type NAME OPEN_PARENTH parameters CLOSE_PARENTH RETURNS returnType;
 type: PRIMITIVE_TYPE
@@ -72,15 +78,16 @@ expression: value
 		  | functionCall
 		  | expression expression_tail;
 value: NUMBER
-	 | variable
+	 | BOOLEAN_VALUE
 	 | CHARACTER
-	 | STRING;
+	 | STRING
+	 | variable;
 functionCall: pureFunctionCall
 			| impureFunctionCall;
 impureFunctionCall: AT pureFunctionCall;
 pureFunctionCall: NAME OPEN_PARENTH arguments CLOSE_PARENTH;
-expression_tail: BINARY_OPERATOR expression
-			   | QUESTION_MARK expression COLON expression;
+expression_tail: QUESTION_MARK expression COLON expression
+			   | BINARY_OPERATOR expression;
 arguments: 
 		 | args_non_zero;
 args_non_zero: argument

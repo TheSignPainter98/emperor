@@ -8,9 +8,23 @@ extern int yylval;
 extern int currentLine;
 extern int currentChar;
 
+
 %}
+%x comment
 %%
+	int commentDepth = 0;
 " "	;
+"/*"						{ BEGIN(comment); }
+<comment>{
+	"/*"           { ++commentDepth; }
+	"*"+"/"        { if (commentDepth > 0) --commentDepth;
+					else BEGIN(INITIAL); }
+	"*"+           ; /**/
+	[^/*\n]+       ; /**/
+	[/]            ; /**/
+	\n             ; /**/
+}
+\t							{ return WHITESPACE; }
 "\n"						{ return EOL; }
 "@"							{ return AT; }
 "."							{ return DOT; }
@@ -24,10 +38,10 @@ extern int currentChar;
 "<-"						{ return GETS; }
 -?[0-9]+ 	 				{ return NUMBER; }
 -?[0-9]+\.[0-9]+ 			{ return REAL; }
+true|false					{ return BOOLEAN_VALUE; }
 pure|impure					{ return FUNCTION_PURITY; }
 int|real|boolean			{ return PRIMITIVE_TYPE; }
-"/*"						{ return OPEN_COMMENT; }
-"*/"						{ return CLOSE_COMMENT; }
+public|family|private		{ return ACCESS_MODIFIER; }
 "?"							{ return QUESTION_MARK; }
 ":"							{ return COLON; }
 "void"						{ return VOID; }
