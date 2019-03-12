@@ -1,14 +1,17 @@
 %{
 	#include <stdio.h>
+	#include <stdlib.h>
 	int currentLine = 1;
 	int currentChar = 1;
-	int main(void);
+	int main(int argc, char** argv);
 	int yylex(void);
-	void yyerror(char* s);
+	void yyerror(FILE* fp, char* s);
 
 	extern struct yy_buffer_state* yy_scan_string(char* str);
 	extern void yy_delete_buffer(struct yy_buffer_state* buffer);
 %}
+%parse-param { FILE* fp }
+
 %start program
 
 %token EOL
@@ -97,19 +100,77 @@ variable: NAME
 		| variable OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET;
 %%
 
-int main(void)
+int parseString(char* inputString)
 {
-	// char* inputString = "asdf[asdf[12]] <- asdf\n";
-	// printf("Running on string: '%s'\n", inputString);
-	// struct yy_buffer_state* buffer = yy_scan_string(inputString);
-	// int retval = yyparse();
-	// yy_delete_buffer(buffer);
-	// return retval;
-	// printf("%s", "Type string for input > ");
-	return yyparse();
+	struct yy_buffer_state* buffer = yy_scan_string(inputString);
+	int retval = yyparse(NULL);
+	yy_delete_buffer(buffer);
+	return retval;
 }
 
-void yyerror(char* s)
+/**
+ * Precondition: The file in `filepath` exists
+*/
+int parseFile(const char* filePath)
+{
+	FILE* fp = fopen(filePath, "r");
+
+	if (fp != NULL)
+	{
+		// THERE'S DEFINITELY A BETTER WAY OF DOING THIS!!
+		char * buffer = NULL;
+		long length;
+
+		fseek(fp, 0, SEEK_END);
+		length = ftell(fp);
+		fseek(fp, 0, SEEK_SET);
+		buffer = malloc(length);
+
+		if (buffer != NULL)
+		{
+			fread(buffer, 1, length, fp);
+		}
+
+		fclose(fp);
+
+		if (buffer != NULL)
+		{
+			// start to process your data / extract strings here...
+			int returnVal = parseString(buffer);
+			free(buffer);
+			return returnVal;
+		}
+		else
+		{
+			fprintf(stderr, "%s\n", "Could not read things in to buffer");
+			return -10;
+		}
+	}
+	else
+	{
+		fprintf(stderr, "%s %s\n", "Could not read input file,", filePath);
+		return -11;
+	}
+}
+
+int main(int argc, char** argv)
+{
+	if (argc <= 1)
+	{
+		printf("%s\n", "Where are my inputs?");
+		return -1;
+	}
+	else
+	{
+		if (argc >= 3)
+		{
+			printf("%s %d %s\n", "Early version, got", argc, "arguments, ignoring second and after :(");
+		}
+		return parseFile(argv[1]);
+	}
+}
+
+void yyerror(FILE* fp, char* s)
 {
 	fprintf(stderr, "%s\n",s);
 }

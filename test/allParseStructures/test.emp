@@ -1,0 +1,9 @@
+asdf <- 1234
+pure int functionName(int p1, boolean p2, real p3) -> real
+impure int functionName(int p1, boolean p2, real p3) -> void
+/*
+	/*
+		/*
+		*/
+	*/
+*/

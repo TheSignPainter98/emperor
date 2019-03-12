@@ -1,4 +1,7 @@
 #!/usr/bin/make
 
+.PHONY: all clean
+
 all: ;
-.PHONY: all
+
+clean: ;

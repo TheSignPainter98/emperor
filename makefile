@@ -1,8 +1,13 @@
 #!/usr/bin/make
 
+.PHONY: all src clean test
 all: src
-.PHONY: all
 
 src:
 	+$(MAKE) -C src
-.PHONY: src
+
+clean:
+	+$(MAKE) -C src clean
+
+test:
+	+$(MAKE) -C test test
