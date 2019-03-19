@@ -1,7 +1,13 @@
 #!/usr/bin/make
 CC = gcc
 
-all:
+.PHONY: all;
+
+all: actions.o;
+
+actions.o: actions.c;
+
+actions.c:
 	$(CC) -c actions.c -o actions.o
 
 clean:

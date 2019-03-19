@@ -2,10 +2,10 @@
 
 .PHONY: all test emperor
 
-all:
+all: ;
 
 test: emperor
-	+$(MAKE) -C allParseStructures test
+	$(MAKE) -C allParseStructures test
 
 emperor: ;
-	# +$(MAKE) -C .. src
+	$(MAKE) -C .. src

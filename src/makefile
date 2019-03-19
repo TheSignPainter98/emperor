@@ -1,6 +1,5 @@
 #!/usr/bin/make
 
-
 .PHONY: all emperor emperordoc emperorlint clean
 
 all: emperor emperordoc emperorlint;
