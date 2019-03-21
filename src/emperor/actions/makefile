@@ -5,9 +5,7 @@ CC = gcc
 
 all: actions.o;
 
-actions.o: actions.c;
-
-actions.c:
+actions.o:
 	$(CC) -c actions.c -o actions.o
 
 clean:

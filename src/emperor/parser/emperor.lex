@@ -2,9 +2,8 @@
  
 #include <stdio.h>
 #include "emperor.tab.h"
+#include "Primitives.h"
 
-int c;
-extern int yylval;
 extern int currentLine;
 extern int currentChar;
 
@@ -12,123 +11,95 @@ extern int currentChar;
 %x comment
 %%
 	int commentDepth = 0;
-" "	;
-"/*"						{ BEGIN(comment); }
+" "								;
+"/*"							{ BEGIN(comment); }
 <comment>{
-	"/*"           { ++commentDepth; }
-	"*"+"/"        { if (commentDepth > 0) --commentDepth;
-					else BEGIN(INITIAL); }
-	"*"+           ; /**/
-	[^/*\n]+       ; /**/
-	[/]            ; /**/
-	\n             ; /**/
+	"/*"           				{ ++commentDepth; }
+	"*"+"/"        				{ if (commentDepth > 0) --commentDepth;
+									else BEGIN(INITIAL); }
+	"*"+           				; /**/
+	[^/*\n]+       				; /**/
+	[/]            				; /**/
+	\n             				; /**/
 }
-\t							{ return WHITESPACE; }
-"\n"						{ return EOL; }
-"@"							{ return AT; }
-"."							{ return DOT; }
-","							{ return COMMA; }
-"("							{ return OPEN_PARENTH; }
-")"							{ return CLOSE_PARENTH; }
-"["							{ return OPEN_SQUARE_BRACKET; }
-"]"							{ return CLOSE_SQUARE_BRACKET; }
-"="							{ return EQUALS; }
-"->"						{ return RETURNS; }
-"<-"						{ return GETS; }
--?[0-9]+ 	 				{ return NUMBER; }
--?[0-9]+\.[0-9]+ 			{ return REAL; }
-true|false					{ return BOOLEAN_VALUE; }
-pure|impure					{ return FUNCTION_PURITY; }
-int|real|boolean			{ return PRIMITIVE_TYPE; }
-public|family|private		{ return ACCESS_MODIFIER; }
-"?"							{ return QUESTION_MARK; }
-":"							{ return COLON; }
-"void"						{ return VOID; }
-\'(\\.|[^'\\])\'			{ return CHARACTER; }
-\"(\\.|[^"\\])*\"			{ return STRING; }
-[A-Za-z£][A-Za-z0-9£]* 		{ return NAME; }
-%%
-// "+"|"-"|"<"|">"|"!"|"&"|"|"|"*"|"/"|"&&"|"||"|"=="|"!="|"=>"|"<="|">="|"<=>"|">>"|"<<"|"<<<"
-// 							{ return BINARY_OPERATOR; }
-// 	yylval = *yytext;
-// 	return OPERATOR; 
-// }
-// [lL] {
-// 	yylval = *yytext;
-// 	return LONG_TAIL;
-// }
-// \'[a-zA-Z]\' {
-// 	c = yytext[0];
-// 	yylval = c - 'a';
-// 	return LETTER;
-// }
-// [0-9] {
-// 	c = yytext[0];
-// 	yylval = c - '0';
-// 	return DIGIT;
-// }
-// public|private|protected {
-// 	c = yytext[0];
-// 	yylval = c;
-// 	return ACCESS_MODIFIER;
-// }
-// pure {
-// 	yylval = *yytext;
-// 	return PURITY_PURE;
-// }
-// impure {
-// 	yylval = *yytext;
-// 	return PURITY_IMPURE;
-// }
-// int|bool|real|long|char {
-// 	yylval = *yytext;
-// 	return PRIMITIVE_TYPE;
-// }
-// true|false {
-// 	yylval = strcmp(yytext, "true") == 0 ? 1 : 0;
-// 	return BOOLEAN;
-// }
-// 0b[01]* {
-// 	yylval = atoi(yytext);
-// 	// Decode binary here
-// 	return BITSEQUENCE_VALUE;
-// }
-// 0x[0-9A-Fa-f]* {
-// 	yylval = atoi(yytext);
-// 	// decode hex here
-// 	return HEX_VALUE;
-// }
-// [a-zA-z][a-zA-Z0-9_]* {
-// 	yylval = *yytext;
-// 	return NAME;
-// }
-// %%
-/**
- * Precondition: the `binary` string consists only of the characters `0` and `1`.
-*/
-int binaryToIn(const char* binary)
-{
-	printf("%s\n", binary);
-	int value = 0;
-	int position = 0x1;
-	int i;
-	int len = strlen(binary);
-	for(i = 0; i < 32; i++)
-	{
-		if (binary[i] == '1')
-		{
-			value |= position;
-		}
-		position <<= 1;
-		if (i <= len)
-		{
-			break;
-		}
-	}
-	return value;
-}
+\t*								{ return WHITESPACE; }
+"\n"							{ return EOL; }
+"@"								{ return AT; }
+"."								{ return DOT; }
+","								{ return COMMA; }
+"#"								{ return HASH_SIGN; }
+"_"								{ return IGNORE; }
+"("								{ return OPEN_PARENTH; }
+")"								{ return CLOSE_PARENTH; }
+"["								{ return OPEN_SQUARE_BRACKET; }
+"]"								{ return CLOSE_SQUARE_BRACKET; }
+"->"							{ return RETURNS; }
+"<-"							{ return GETS; }
+"<=>"							{ return EQUIVALENT; }
+">>"							{ return SHIFT_LEFT; }
+"<<"							{ return SHIFT_RIGHT; }
+">>>"							{ return SHIFT_RIGHT_SIGN; }
+"&&"							{ return BOOLEAN_AND; }
+"||"							{ return BOOLEAN_OR; }
+"="								{ return VALUE_EQUAL; }
+"!="							{ return VALUE_NOT_EQUAL; }
+"=>"							{ return BOOLEAN_IMPLICATION; }
+"<="							{ return LEQ; }
+">="							{ return GEQ; }
+"+"								{ return PLUS; }
+"-"								{ return MINUS; }
+"<"								{ return LT; }
+">"								{ return GT; }
+"!"								{ return BOOLEAN_NOT; }
+"~"								{ return BITWISE_NOT; }
+"&"								{ return BITWISE_AND; }
+"|"								{ return BITWISE_OR; }
+"*"								{ return MULTIPLY; }
+"%" 							{ return MODULO; }
+"/" 							{ return DIVIDE; }
+"?"								{ return QUESTION_MARK; }
+":"								{ return COLON; }
+"void"							{ return VOID; }
+-?[0-9]+ 	 					{ yylval.integer = makeInt(yytext); 			return NUMBER; }
+-?[0-9]+\.[0-9]+ 				{ yylval.real = makeReal(yytext); 				return REAL; }
+true|false						{ yylval.boolean = makeBool(yytext); 			return BOOLEAN_VALUE; }
+pure|impure						{ yylval.purity = makePurity(yytext); 			return FUNCTION_PURITY; }
+int|real|boolean|char|string	{ yylval.primitive = makePrimitive(yytext); 	return PRIMITIVE_TYPE; }
+public|family|private			{ yylval.protection = makeProtection(yytext); 	return ACCESS_MODIFIER; }
+\'(\\.|[^'\\])\'				{ yylval.character = makeChar(yytext); 			return CHARACTER; }
+\"(\\.|[^"\\])*\"				{ yylval.string = makeString(yytext); 			return STRING; }
+[A-Za-z£][A-Za-z0-9£]* 			{ yylval.name = strdup(yytext); 				return NAME; }
 
-int hexadecimalToInt(const char* hexadecimal);
+%%
+
+// /**
+//  * Precondition: the `binary` string consists only of the characters `0` and `1`.
+// */
+// int binaryToInt(const char* binary)
+// {
+// 	printf("%s\n", binary);
+// 	int value = 0;
+// 	int position = 0x1;
+// 	int i;
+// 	int len = strlen(binary);
+// 	for(i = 0; i < 32; i++)
+// 	{
+// 		if (binary[i] == '1')
+// 		{
+// 			value |= position;
+// 		}
+// 		position <<= 1;
+// 		if (i <= len)
+// 		{
+// 			break;
+// 		}
+// 	}
+// 	return value;
+// }
+
+// int hexadecimalToInt(const char* hexadecimal);
+
+
 // Keywords: BLOCKS:	if, else, while, for, foreach, repeat,
 // Keywords: FUNCTIONS:	pure, impure
 // Keywords: MODIFIERS:	public, private, protected
