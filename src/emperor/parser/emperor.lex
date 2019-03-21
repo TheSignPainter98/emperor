@@ -8,12 +8,14 @@ extern int currentLine;
 extern int currentChar;
 
 %}
-%x comment
+%x docBlock
+%x commentBlock
+%x commentLine
 %%
 	int commentDepth = 0;
 " "								;
-"/*"							{ BEGIN(comment); }
-<comment>{
+"/**"							{ BEGIN(docBlock); }
+<docBlock>{
 	"/*"           				{ ++commentDepth; }
 	"*"+"/"        				{ if (commentDepth > 0) --commentDepth;
 									else BEGIN(INITIAL); }
@@ -21,6 +23,21 @@ extern int currentChar;
 	[^/*\n]+       				; /**/
 	[/]            				; /**/
 	\n             				; /**/
+}
+"/*"							{ BEGIN(commentBlock); }
+<commentBlock>{
+	"/*"           				{ ++commentDepth; }
+	"*"+"/"        				{ if (commentDepth > 0) --commentDepth;
+									else BEGIN(INITIAL); }
+	"*"+           				; /**/
+	[^/*\n]+       				; /**/
+	[/]            				; /**/
+	\n             				; /**/
+}
+"//"							{ BEGIN(commentLine); }
+<commentLine>{
+	[^\n]+						;
+	"\n"						{ BEGIN(INITIAL); }
 }
 \t*								{ return WHITESPACE; }
 "\n"							{ return EOL; }
@@ -60,15 +77,15 @@ extern int currentChar;
 "?"								{ return QUESTION_MARK; }
 ":"								{ return COLON; }
 "void"							{ return VOID; }
--?[0-9]+ 	 					{ yylval.integer = makeInt(yytext); 			return NUMBER; }
--?[0-9]+\.[0-9]+ 				{ yylval.real = makeReal(yytext); 				return REAL; }
-true|false						{ yylval.boolean = makeBool(yytext); 			return BOOLEAN_VALUE; }
-pure|impure						{ yylval.purity = makePurity(yytext); 			return FUNCTION_PURITY; }
-int|real|boolean|char|string	{ yylval.primitive = makePrimitive(yytext); 	return PRIMITIVE_TYPE; }
-public|family|private			{ yylval.protection = makeProtection(yytext); 	return ACCESS_MODIFIER; }
-\'(\\.|[^'\\])\'				{ yylval.character = makeChar(yytext); 			return CHARACTER; }
-\"(\\.|[^"\\])*\"				{ yylval.string = makeString(yytext); 			return STRING; }
-[A-Za-z£][A-Za-z0-9£]* 			{ yylval.name = strdup(yytext); 				return NAME; }
+-?[0-9]+ 	 					{ yylval.int_t = makeInt(yytext); 					return NUMBER; }
+-?[0-9]+\.[0-9]+ 				{ yylval.real_t = makeReal(yytext); 				return REAL; }
+true|false						{ yylval.bool_t = makeBool(yytext); 				return BOOLEAN_VALUE; }
+pure|impure						{ yylval.purity_t = makePurity(yytext); 			return FUNCTION_PURITY; }
+int|real|boolean|char|string	{ yylval.primitive_t = makePrimitive(yytext); 		return PRIMITIVE_TYPE; }
+public|family|private			{ yylval.protection_t = makeProtection(yytext); 	return ACCESS_MODIFIER; }
+\'(\\.|[^'\\])\'				{ yylval.char_t = makeChar(yytext); 				return CHARACTER; }
+\"(\\.|[^"\\])*\"				{ yylval.string_t = makeString(yytext); 			return STRING; }
+[A-Za-z£][A-Za-z0-9£]* 			{ yylval.name_t = strdup(yytext); 					return NAME; }
 
 %%
 

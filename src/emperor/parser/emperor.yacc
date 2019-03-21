@@ -31,20 +31,21 @@
 %start program
 
 // %define api.value.type {YYSTYPE_t}
-%code requires {#include "Primitives.h"}
+%code requires {#include "AST.h"}
 %code requires {#include "Keywords.h"}
-%code requires {#define NO_CHILDREN makeA}
+%code requires {#include "Primitives.h"}
+%code requires {#include "Symbols.h"}
 %union 
 {
-	int_t integer;
-	real_t real;
-	bool_t boolean;
-	char_t character;
-	string_t string;
-	purity_t purity;
-	primitive_t primitive;
-	protection_t protection; 
-	char* name;
+	int_t int_t;
+	real_t real_t;
+	bool_t bool_t;
+	char_t char_t;
+	string_t string_t;
+	purity_t purity_t;
+	primitive_t primitive_t;
+	protection_t protection_t; 
+	name_t name_t;
 	AstNode_t *AstNode_t;
 }
 
@@ -99,7 +100,7 @@
 %token <purity_t> ACCESS_MODIFIER
 %token <primitive_t> CHARACTER
 %token <protection_t> STRING
-%token <char*> NAME
+%token <name_t> NAME
 %token OPEN_COMMENT
 %token CLOSE_COMMENT
 %token WHITESPACE
@@ -152,12 +153,12 @@
 
 %%									 /* beginning of rules section */
 program: line						{ $$ = $1; }
-	   | line EOL program			{ $$ = makeJoiningNode(program_v, (AstNode_t*[]){$1, $3}); }
+	   | line EOL program			{ $$ = makeJoiningNode(program_v, 2, $1, $3); }
 	   ;
 line: startLineWhiteSpace lineContents	{ $$ = $2; }
 	;
-startLineWhiteSpace:								{ $$ = NULL; }// ??
-				   | WHITESPACE startLineWhiteSpace	{ $$ = NULL; }// ?? 
+startLineWhiteSpace:								{ $$ = NULL; }
+				   | WHITESPACE startLineWhiteSpace	{ $$ = NULL; } 
 				   ;
 lineContents:								{ $$ = NULL; }
 			| functionalLine				{ $$ = $1; }
@@ -168,106 +169,106 @@ functionalLine: impureFunctionCall			{ $$ = $1; }
 			  | declarationWithAssignment	{ $$ = $1; }
 			  | assignment					{ $$ = $1; }
 			  ;
-declaration: type variable	{ $$ = makeJoiningNode(declaration_v, {$1, $2}); }
+declaration: type variable	{ $$ = makeJoiningNode(declaration_v, 2, $1, $2); }
 		   ;
 type_list_non_zero: type							{ $$ = $1; }
-				  | type COMMA type_list_non_zero	{ $$ = makeJoiningNode(type_list_non_zero_v, (AstNode_t*[]){$1, $3}); }
+				  | type COMMA type_list_non_zero	{ $$ = makeJoiningNode(type_list_non_zero_v, 2, $1, $3); }
 				  ;
-functionDeclarationLine: FUNCTION_PURITY NAME OPEN_PARENTH parameters CLOSE_PARENTH RETURNS returnType	{ $$ = makeJoiningNode(functionDeclarationLine_v, (AstNode_t*[]){$1, $2, $4, $7}); }
+functionDeclarationLine: FUNCTION_PURITY NAME OPEN_PARENTH parameters CLOSE_PARENTH RETURNS returnType	{ $$ = makeJoiningNode(functionDeclarationLine_v, 4, makeLeaf(FUNCTION_PURITY_v, (NodeValue_t){.purity_v = $1}), makeLeaf(NAME_v, (NodeValue_t){.name = $2}), $4, $7); }
 					   ;
-type: PRIMITIVE_TYPE									{ $$ = makeLeaf(type_v, $1); }
-	| type OPEN_ANGLE type_list CLOSE_ANGLE				{ $$ = makeNode(type_v, GENERIC_TYPE, (AstNode_t*[]){$1, $3}); }
-	| OPEN_PARENTH type_list CLOSE_PARENTH				{ $$ = makeNode(type_v, TUPLE_TYPE, (AstNode_t*[]){$2}); }
-	| OPEN_SQUARE_BRACKET type CLOSE_SQUARE_BRACKET		{ $$ = makeNode(type_v, LIST_TYPE, (AstNode_t*[]){$2}); }
+type: PRIMITIVE_TYPE									{ $$ = makeLeaf(type_v, (NodeValue_t){.primitive_v = $1}); }
+	| type OPEN_ANGLE type_list CLOSE_ANGLE				{ $$ = makeNode(type_v, (NodeValue_t){.val = GENERIC_TYPE}, 2, $1, $3); }
+	| OPEN_PARENTH type_list CLOSE_PARENTH				{ $$ = makeNode(type_v, (NodeValue_t){.val = TUPLE_TYPE}, 1, $2); }
+	| OPEN_SQUARE_BRACKET type CLOSE_SQUARE_BRACKET		{ $$ = makeNode(type_v, (NodeValue_t){.val = LIST_TYPE}, 1, $2); }
 	| functionType										{ $$ = $1; }
-	| NAME												{ $$ = makeLeaf(type_v, $1); }
+	| NAME												{ $$ = makeLeaf(type_v, (NodeValue_t){.name = $1}); }
 	;
-type_list: 						{ $$ = makeLeaf(type_list_v, NULL); }
+type_list: 						{ $$ = NULL; }
 		 | type_list_non_zero	{ $$ = $1; }
 		 ;
-functionType: HASH_SIGN OPEN_PARENTH type_list CLOSE_PARENTH RETURNS type { $$ = makeJoiningNode(functionType_v, {$3, $6}); }
+functionType: HASH_SIGN OPEN_PARENTH type_list CLOSE_PARENTH RETURNS type { $$ = makeJoiningNode(functionType_v, 2, $3, $6); }
 			;
-parameters: 						{ $$ = makeLeaf(parameters_v, NULL); }
+parameters: 						{ $$ = NULL; }
 		  | parameters_non_zero		{ $$ = $1; }
 		  ;
 parameters_non_zero: parameter								{ $$ = $1; }
-				   | parameter COMMA parameters_non_zero	{ $$ = makeJoiningNode(parameters_non_zero_v, {$1, $3}); }
+				   | parameter COMMA parameters_non_zero	{ $$ = makeJoiningNode(parameters_non_zero_v, 2, $1, $3); }
 				   ;
-parameter: type NAME	{ $$ = makeJoiningNode(parameter_v, {$1, $2}); }
+parameter: type NAME	{ $$ = makeJoiningNode(parameter_v, 2, $1, makeLeaf(NAME_v, (NodeValue_t){.name = $2})); }
 		 ;
 returnType: type	{ $$ = $1; }
-		  | VOID 	{ $$ = makeLeaf(returnType_v, VOID); }
+		  | VOID 	{ $$ = makeLeaf(returnType_v, (NodeValue_t){.val = VOID}); }
 		  ;
 
-assignment: variable GETS expression						{ $$ = makeJoiningNode(assignment_v, {$1, $3}); }
+assignment: variable GETS expression						{ $$ = makeJoiningNode(assignment_v, 2, $1, $3); }
 		  ;
-declarationWithAssignment: type variable GETS expression	{ $$ = makeJoiningNode(declarationWithAssignment_v, {$1, $2, $4});}
+declarationWithAssignment: type variable GETS expression	{ $$ = makeJoiningNode(declarationWithAssignment_v, 3, $1, $2, $4); }
 						 ;
 
 expression: value 													{ $$ = $1; }
 		  | functionCall											{ $$ = $1; }
-		  | MINUS expression										{ $$ = makeNode(expression_v, MINUS, 				{$2}); }
-		  | BITWISE_NOT expression									{ $$ = makeNode(expression_v, BITWISE_NOT, 			{$2}); }
-		  | BOOLEAN_NOT expression									{ $$ = makeNode(expression_v, BOOLEAN_NOT, 			{$2}); }
-		  | expression MINUS expression								{ $$ = makeNode(expression_v, MINUS,				{$1, $3}); }
-		  | expression EQUIVALENT expression						{ $$ = makeNode(expression_v, EQUIVALENT,			{$1, $3}); }
-		  | expression SHIFT_LEFT expression						{ $$ = makeNode(expression_v, SHIFT_LEFT,			{$1, $3}); }
-		  | expression SHIFT_RIGHT expression						{ $$ = makeNode(expression_v, SHIFT_RIGHT,			{$1, $3}); }
-		  | expression SHIFT_RIGHT_SIGN expression					{ $$ = makeNode(expression_v, SHIFT_RIGHT_SIGN,		{$1, $3}); }
-		  | expression BOOLEAN_AND expression						{ $$ = makeNode(expression_v, BOOLEAN_AND,			{$1, $3}); }
-		  | expression BOOLEAN_OR expression						{ $$ = makeNode(expression_v, BOOLEAN_OR,			{$1, $3}); }
-		  | expression VALUE_EQUAL expression						{ $$ = makeNode(expression_v, VALUE_EQUAL,			{$1, $3}); }
-		  | expression VALUE_NOT_EQUAL expression					{ $$ = makeNode(expression_v, VALUE_NOT_EQUAL,		{$1, $3}); }
-		  | expression BOOLEAN_IMPLICATION expression				{ $$ = makeNode(expression_v, BOOLEAN_IMPLICATION,	{$1, $3}); }
-		  | expression LEQ expression								{ $$ = makeNode(expression_v, LEQ,					{$1, $3}); }
-		  | expression GEQ expression								{ $$ = makeNode(expression_v, GEQ,					{$1, $3}); }
-		  | expression PLUS expression								{ $$ = makeNode(expression_v, PLUS,					{$1, $3}); }
-		  | expression MINUS expression								{ $$ = makeNode(expression_v, MINUS,				{$1, $3}); }
-		  | expression LT expression								{ $$ = makeNode(expression_v, LT,					{$1, $3}); }
-		  | expression GT expression								{ $$ = makeNode(expression_v, GT,					{$1, $3}); }
-		  | expression BITWISE_AND expression						{ $$ = makeNode(expression_v, BITWISE_AND,			{$1, $3}); }
-		  | expression BITWISE_OR expression						{ $$ = makeNode(expression_v, BITWISE_OR,			{$1, $3}); }
-		  | expression MULTIPLY expression							{ $$ = makeNode(expression_v, MULTIPLY,				{$1, $3}); }
-		  | expression MODULO expression							{ $$ = makeNode(expression_v, MODULO,				{$1, $3}); }
-		  | expression DIVIDE expression							{ $$ = makeNode(expression_v, DIVIDE,				{$1, $3}); }
-		  | expression QUESTION_MARK expression COLON expression	{ $$ = makeNode(expression_v, QUESTION_MARK,		{$1, $3, $5}); }
+		  | MINUS expression										{ $$ = makeNode(expression_v, (NodeValue_t){.val = MINUS}, 					1, $2); }
+		  | BITWISE_NOT expression									{ $$ = makeNode(expression_v, (NodeValue_t){.val = BITWISE_NOT}, 			1, $2); }
+		  | BOOLEAN_NOT expression									{ $$ = makeNode(expression_v, (NodeValue_t){.val = BOOLEAN_NOT}, 			1, $2); }
+		  | expression MINUS expression								{ $$ = makeNode(expression_v, (NodeValue_t){.val = MINUS},					2, $1, $3); }
+		  | expression EQUIVALENT expression						{ $$ = makeNode(expression_v, (NodeValue_t){.val = EQUIVALENT},				2, $1, $3); }
+		  | expression SHIFT_LEFT expression						{ $$ = makeNode(expression_v, (NodeValue_t){.val = SHIFT_LEFT},				2, $1, $3); }
+		  | expression SHIFT_RIGHT expression						{ $$ = makeNode(expression_v, (NodeValue_t){.val = SHIFT_RIGHT},			2, $1, $3); }
+		  | expression SHIFT_RIGHT_SIGN expression					{ $$ = makeNode(expression_v, (NodeValue_t){.val = SHIFT_RIGHT_SIGN},		2, $1, $3); }
+		  | expression BOOLEAN_AND expression						{ $$ = makeNode(expression_v, (NodeValue_t){.val = BOOLEAN_AND},			2, $1, $3); }
+		  | expression BOOLEAN_OR expression						{ $$ = makeNode(expression_v, (NodeValue_t){.val = BOOLEAN_OR},				2, $1, $3); }
+		  | expression VALUE_EQUAL expression						{ $$ = makeNode(expression_v, (NodeValue_t){.val = VALUE_EQUAL},			2, $1, $3); }
+		  | expression VALUE_NOT_EQUAL expression					{ $$ = makeNode(expression_v, (NodeValue_t){.val = VALUE_NOT_EQUAL},		2, $1, $3); }
+		  | expression BOOLEAN_IMPLICATION expression				{ $$ = makeNode(expression_v, (NodeValue_t){.val = BOOLEAN_IMPLICATION},	2, $1, $3); }
+		  | expression LEQ expression								{ $$ = makeNode(expression_v, (NodeValue_t){.val = LEQ},					2, $1, $3); }
+		  | expression GEQ expression								{ $$ = makeNode(expression_v, (NodeValue_t){.val = GEQ},					2, $1, $3); }
+		  | expression PLUS expression								{ $$ = makeNode(expression_v, (NodeValue_t){.val = PLUS},					2, $1, $3); }
+		  | expression MINUS expression								{ $$ = makeNode(expression_v, (NodeValue_t){.val = MINUS},					2, $1, $3); }
+		  | expression LT expression								{ $$ = makeNode(expression_v, (NodeValue_t){.val = LT},						2, $1, $3); }
+		  | expression GT expression								{ $$ = makeNode(expression_v, (NodeValue_t){.val = GT},						2, $1, $3); }
+		  | expression BITWISE_AND expression						{ $$ = makeNode(expression_v, (NodeValue_t){.val = BITWISE_AND},			2, $1, $3); }
+		  | expression BITWISE_OR expression						{ $$ = makeNode(expression_v, (NodeValue_t){.val = BITWISE_OR},				2, $1, $3); }
+		  | expression MULTIPLY expression							{ $$ = makeNode(expression_v, (NodeValue_t){.val = MULTIPLY},				2, $1, $3); }
+		  | expression MODULO expression							{ $$ = makeNode(expression_v, (NodeValue_t){.val = MODULO},					2, $1, $3); }
+		  | expression DIVIDE expression							{ $$ = makeNode(expression_v, (NodeValue_t){.val = DIVIDE},					2, $1, $3); }
+		  | expression QUESTION_MARK expression COLON expression	{ $$ = makeNode(expression_v, (NodeValue_t){.val = QUESTION_MARK},			3, $1, $3, $5); }
 		  ;
-value: NUMBER			{ $$ = makeLeaf(value_v, $1); }
-	 | REAL				{ $$ = makeLeaf(value_v, $1); }
-	 | BOOLEAN_VALUE	{ $$ = makeLeaf(value_v, $1); }
-	 | CHARACTER		{ $$ = makeLeaf(value_v, $1); }
-	 | STRING			{ $$ = makeLeaf(value_v, $1); }
-	 | variable			{ $$ = makeLeaf(value_v, $1); }
-	 | OPEN_PARENTH value_list CLOSE_PARENTH { $$ = makeNode(value_v, TUPLE_VALUE,  {$2}); }
+value: NUMBER			{ $$ = makeLeaf(value_v, (NodeValue_t){.int_v = $1}); }
+	 | REAL				{ $$ = makeLeaf(value_v, (NodeValue_t){.real_v = $1}); }
+	 | BOOLEAN_VALUE	{ $$ = makeLeaf(value_v, (NodeValue_t){.bool_v = $1}); }
+	 | CHARACTER		{ $$ = makeLeaf(value_v, (NodeValue_t){.char_v = $1}); }
+	 | STRING			{ $$ = makeLeaf(value_v, (NodeValue_t){.string_v = $1}); }
+	 | variable			{ $$ = $1; }
+	 | OPEN_PARENTH value_list CLOSE_PARENTH { $$ = makeNode(value_v, (NodeValue_t){.val = TUPLE_VALUE}, 1, $2); }
 	 ;
 value_list: value					{ $$ = $1; }
-	      | value COMMA value_list	{ $$ = makeJoiningNode(value_list_v, {$1, $3}); }
+	      | value COMMA value_list	{ $$ = makeJoiningNode(value_list_v, 2, $1, $3); }
 		  ;
 functionCall: pureFunctionCall		{ $$ = $1; }
 			| impureFunctionCall	{ $$ = $1; }
 			;
-impureFunctionCall: AT pureFunctionCall { $$ = makeJoiningNode(impureFunctionCall_v, {$2}); }
+impureFunctionCall: AT pureFunctionCall { $$ = makeJoiningNode(impureFunctionCall_v, 1, $2); }
 				  ;
-pureFunctionCall: NAME OPEN_PARENTH arguments CLOSE_PARENTH	{ $$ = makeJoiningNode(pureFunctionCall_v, {$1, $3}); }
+pureFunctionCall: NAME OPEN_PARENTH arguments CLOSE_PARENTH	{ $$ = makeJoiningNode(pureFunctionCall_v, 2, $1, $3); }
 				;
 
-arguments: 					{ $$ = makeLeaf(arguments_v, NULL); }
+arguments: 					{ $$ = NULL; }
 		 | args_non_zero	{ $$ = $1; }
 		 ;
 args_non_zero: argument							{ $$ = $1; }
-			 | argument COMMA args_non_zero		{ $$ = makeJoiningNode(args_non_zero_v, {$1, $3}); }
+			 | argument COMMA args_non_zero		{ $$ = makeJoiningNode(args_non_zero_v, 2, $1, $3); }
 			 ;
 argument: expression	{ $$ = $1; }
 		;
-variable: NAME 																{ $$ = makeLeaf(variable_v, $1); }
-		| variable OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET		{ $$ = makeJoiningNode(variable_v, {$1,$3}); }
-		| OPEN_PARENTH variable_list_with_ignores CLOSE_PARENTH				{ $$ = makeJoiningNode(variable_v, {$2}); }
+variable: NAME 																{ $$ = makeLeaf(variable_v, (NodeValue_t){.name = $1}); }
+		| variable OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET		{ $$ = makeJoiningNode(variable_v, 2, $1, $3); }
+		| OPEN_PARENTH variable_list_with_ignores CLOSE_PARENTH				{ $$ = makeJoiningNode(variable_v, 1, $2); }
 		;
-variable_list_with_ignores: variable_or_ignore									{ $$ = makeJoiningNode(variable_list_with_ignores_v, {$1}); }
-						  | variable_or_ignore COMMA variable_list_with_ignores	{ $$ = makeJoiningNode(variable_list_with_ignores_v, {$1,$3}); }
+variable_list_with_ignores: variable_or_ignore									{ $$ = makeJoiningNode(variable_list_with_ignores_v, 1, $1); }
+						  | variable_or_ignore COMMA variable_list_with_ignores	{ $$ = makeJoiningNode(variable_list_with_ignores_v, 2, $1, $3); }
 						  ;
-variable_or_ignore: variable	{ $$ = makeJoiningNode(variable_or_ignore_v, {$1}); }
-				  | IGNORE		{ $$ = makeLeafNode(variable_or_ignore_v, IGNORE); }
+variable_or_ignore: variable	{ $$ = makeJoiningNode(variable_or_ignore_v, 1, $1); }
+				  | IGNORE		{ $$ = makeLeaf(variable_or_ignore_v, (NodeValue_t){.val = IGNORE_v}); }
 				  ;
 %%
 
@@ -361,7 +362,7 @@ extern int main(int argc, char** argv)
 
 void yyerror(FILE* fp, char* s)
 {
-	fprintf(stderr, "%s\n",s);
+	fprintf(stderr, "%s %s\n", "!!",s);
 }
 
 int yywrap(void)

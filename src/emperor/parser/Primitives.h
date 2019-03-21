@@ -7,15 +7,19 @@
 #include <string.h>
 
 typedef double real_t;
-
 typedef bool bool_t;
 typedef char char_t;
 typedef int int_t;
 typedef struct string
 {
-	char *value;
+	const char *value;
 	int length;
 } string_t;
+typedef struct reference
+{
+	int type;
+	void* val;
+} reference_t;
 
 int_t makeInt(char *yytext);
 bool_t makeBool(char *yytext);

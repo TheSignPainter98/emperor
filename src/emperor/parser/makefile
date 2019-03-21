@@ -6,8 +6,8 @@ CC = gcc
 
 all: parser.o;
 
-parser.o: emperor.tab.c emperor.yy.c AST.c Primitives.c Keywords.c
-	$(CC) -shared -fPIC -o parser.o AST.c Primitives.c Keywords.c emperor.tab.c emperor.yy.c
+parser.o: emperor.tab.c emperor.yy.c AST.c Primitives.c Keywords.c Symbols.c
+	$(CC) -shared -fPIC -o parser.o AST.c Primitives.c Keywords.c Symbols.c emperor.tab.c emperor.yy.c
 
 emperor.yy.c: emperor.lex
 	$(LEX) -o emperor.yy.c emperor.lex 
@@ -19,6 +19,7 @@ emperor.lex:;
 emperor.yacc:;
 AST.c:;
 Primitives.c:;
+Symbols.c:;
 
 clean:
 	-@ rm *.o		2>/dev/null	|| true

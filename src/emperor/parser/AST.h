@@ -1,10 +1,13 @@
 #ifndef AST_H
 #define AST_H
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <printf.h>
+#include "Keywords.h"
+#include "Primitives.h"
 
 #define GENERIC_TYPE 	1001
 #define TUPLE_TYPE 		1002
@@ -21,6 +24,7 @@ typedef enum nodeTypes
 	ACCESS_MODIFIER_v,
 	CHARACTER_v,
 	STRING_v,
+	NAME_v,
 	program_v,
 	line_v,
 	startLineWhiteSpace_v,
@@ -52,10 +56,25 @@ typedef enum nodeTypes
 	variable_or_ignore_v
 } nodeType_t;
 
+typedef union nodeValue
+{
+	int val;
+	bool_t bool_v;
+	int_t int_v;
+	real_t real_v;
+	char_t char_v;
+	string_t string_v;
+	purity_t purity_v;
+	primitive_t primitive_v;
+	protection_t protection_v;
+	char* name;
+	void* misc;
+} NodeValue_t;
+
 typedef struct AstNode
 {
 	nodeType_t nodeType;
-	void *value;
+	NodeValue_t value;
 	int numChildren;
 	struct AstNode *children[];
 } AstNode_t;
@@ -67,9 +86,9 @@ typedef struct Line
 	struct Line *nextLine;
 } Line_t;
 
-AstNode_t *makeLeaf(nodeType_t nodeType, void *value);
-AstNode_t *makeJoiningNode(nodeType_t nodeType, AstNode_t *children[]);
-AstNode_t *makeNode(nodeType_t nodeType, void *value, AstNode_t *children[]);
+AstNode_t *makeLeaf(nodeType_t nodeType, NodeValue_t value);
+AstNode_t *makeJoiningNode(nodeType_t nodeType, int numChildren, ...);
+AstNode_t *makeNode(nodeType_t nodeType, NodeValue_t value, int numChildren, ...);
 void printNode(AstNode_t *node);
 void destroyNode(AstNode_t *node);
 
