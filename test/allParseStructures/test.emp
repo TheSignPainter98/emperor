@@ -4,6 +4,9 @@ impure int functionName(int p1, boolean p2, real p3) -> void
 /*
 	/*
 		/*
+			((((
+			something <-
+		malformed!
 		*/
 	*/
 */
