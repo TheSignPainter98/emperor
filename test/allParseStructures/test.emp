@@ -1,10 +1,14 @@
 asdf <- 1234
-pure int functionName(int p1, boolean p2, real p3) -> real
-impure int functionName(int p1, boolean p2, real p3) -> void
+pure functionName(int p1, boolean p2, real p3) -> real
+impure functionName(int p1, boolean p2, real p3) -> void
+	int a <- 1234
+	int i <- 1 + 1 & 1 | 1 | ~1 => someVar <=> someFunc(asdf, fesa) <= some(1 + 2, '"', "fdsa'fdsa") || false
+	string s <- "Hello, world"
+	char c <- 'c'
 /*
 	/*
 		/*
-			((((
+			]]]]((((
 			something <-
 		malformed!
 		*/
