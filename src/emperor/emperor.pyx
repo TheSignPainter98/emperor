@@ -3,14 +3,13 @@
 import argparse
 import parser 
 
-cdef extern from "./actions/actions.c":
-	void action()
+cdef extern from "./parser/emperor.tab.c":
+	int parseFiles(char** files)
+	int parseFile(char* file)
 
-def main(args:list) -> int:
-	print('Hello, world!')
-	action()
-	print('Make some input pls!> ')
-	string = input()
-	print(f'You inputted: {string}')
-	return 0
+def main(args:[str]) -> int:
+	parseFiles(args)
+
+if __name__ == '__main__':
+	main(['-'])
 
