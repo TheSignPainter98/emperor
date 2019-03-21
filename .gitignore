@@ -35,6 +35,9 @@
 *.i*86
 *.x86_64
 *.hex
+emperor
+emperordoc
+emperorlint
 
 # Debug files
 *.dSYM/
@@ -69,3 +72,4 @@ emperor.c
 
 # Misc
 *.log
+images/
