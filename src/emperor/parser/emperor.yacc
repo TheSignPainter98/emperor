@@ -37,16 +37,16 @@
 %code requires {#include "Symbols.h"}
 %union 
 {
-	int_t int_t;
-	real_t real_t;
-	bool_t bool_t;
-	char_t char_t;
-	string_t string_t;
-	purity_t purity_t;
-	primitive_t primitive_t;
-	protection_t protection_t; 
-	name_t name_t;
-	AstNode_t *AstNode_t;
+	int_t integer;
+	real_t real;
+	bool_t boolean;
+	char_t character;
+	string_t string;
+	purity_t purity;
+	primitive_t primitive;
+	protection_t protection;
+	name_t name;
+	AstNode_t *AstNode;
 }
 
 // Misc
@@ -92,15 +92,15 @@
 %token QUESTION_MARK
 %token COLON
 %token VOID
-%token <int_t> NUMBER
-%token <real_t> REAL
-%token <bool_t> BOOLEAN_VALUE
-%token <char_t> FUNCTION_PURITY
-%token <string_t> PRIMITIVE_TYPE
-%token <purity_t> ACCESS_MODIFIER
-%token <primitive_t> CHARACTER
-%token <protection_t> STRING
-%token <name_t> NAME
+%token <integer> NUMBER
+%token <real> REAL
+%token <boolean> BOOLEAN_VALUE
+%token <purity> FUNCTION_PURITY
+%token <primitive> PRIMITIVE_TYPE
+%token <protection> ACCESS_MODIFIER
+%token <character> CHARACTER
+%token <string> STRING
+%token <name> NAME
 %token OPEN_COMMENT
 %token CLOSE_COMMENT
 %token WHITESPACE
@@ -120,36 +120,35 @@
 
 // Terminals with Values
 
-%type<AstNode_t> program
-%type<AstNode_t> line
-%type<AstNode_t> startLineWhiteSpace
-%type<AstNode_t> lineContents
-%type<AstNode_t> functionalLine
-%type<AstNode_t> declaration
-%type<AstNode_t> type_list_non_zero
-%type<AstNode_t> functionDeclarationLine
-%type<AstNode_t> type
-%type<AstNode_t> type_list
-%type<AstNode_t> functionType
-%type<AstNode_t> parameters
-%type<AstNode_t> parameters_non_zero
-%type<AstNode_t> parameter
-%type<AstNode_t> returnType
-%type<AstNode_t> assignment
-%type<AstNode_t> declarationWithAssignment
-%type<AstNode_t> expression
-%type<AstNode_t> value
-%type<AstNode_t> value_list
-%type<AstNode_t> functionCall
-%type<AstNode_t> impureFunctionCall
-%type<AstNode_t> pureFunctionCall
-%type<AstNode_t> arguments
-%type<AstNode_t> args_non_zero
-%type<AstNode_t> argument
-%type<AstNode_t> variable
-%type<AstNode_t> variable_list_with_ignores
-%type<AstNode_t> variable_or_ignore
-
+%type<AstNode> program
+%type<AstNode> line
+%type<AstNode> startLineWhiteSpace
+%type<AstNode> lineContents
+%type<AstNode> functionalLine
+%type<AstNode> declaration
+%type<AstNode> type_list_non_zero
+%type<AstNode> functionDeclarationLine
+%type<AstNode> type
+%type<AstNode> type_list
+%type<AstNode> functionType
+%type<AstNode> parameters
+%type<AstNode> parameters_non_zero
+%type<AstNode> parameter
+%type<AstNode> returnType
+%type<AstNode> assignment
+%type<AstNode> declarationWithAssignment
+%type<AstNode> expression
+%type<AstNode> value
+%type<AstNode> value_list
+%type<AstNode> functionCall
+%type<AstNode> impureFunctionCall
+%type<AstNode> pureFunctionCall
+%type<AstNode> arguments
+%type<AstNode> args_non_zero
+%type<AstNode> argument
+%type<AstNode> variable
+%type<AstNode> variable_list_with_ignores
+%type<AstNode> variable_or_ignore
 
 %%									 /* beginning of rules section */
 program: line						{ $$ = $1; }
@@ -362,7 +361,7 @@ extern int main(int argc, char** argv)
 
 void yyerror(FILE* fp, char* s)
 {
-	fprintf(stderr, "%s %s\n", "!!",s);
+	fprintf(stderr, "%s %s\n", "!",s);
 }
 
 int yywrap(void)
