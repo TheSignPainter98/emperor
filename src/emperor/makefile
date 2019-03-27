@@ -8,7 +8,7 @@ MAKEFLAGS := $(MAKEFLAGS) s
 all: $(OUTPUT_FILE) ;
 
 $(OUTPUT_FILE): ./parser/parser.o ./actions/%.o # ./emperor.o
-	$(CC) -I. -I/usr/include/python3.6m -o $(OUTPUT_FILE) ./actions/actions.o ./parser/parser.o
+	$(CC) -I. -I/usr/include/python3.6m -o $(OUTPUT_FILE) ./actions/actions.o # ./parser/parser.o
 	# $(CC) -shared -I. -I/usr/include/python3.6m -o $(OUTPUT_FILE) ./actions/actions.o ./parser/emperor.yy.o ./parser/emperor.tab.o
 
 ./%.o: ./%.c ./%.h

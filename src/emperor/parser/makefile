@@ -1,13 +1,14 @@
 LEX = flex
 YACC = bison
 CC = gcc
+CFLAGS = # -shared -fPIC
 
 .PHONY: all clean;
 
 all: parser.o;
 
 parser.o: emperor.tab.c emperor.yy.c AST.c Primitives.c Keywords.c Symbols.c
-	$(CC) -shared -fPIC -o parser.o AST.c Primitives.c Keywords.c Symbols.c emperor.tab.c emperor.yy.c
+	$(CC) $(CFLAGS) -o parser.o AST.c Primitives.c Keywords.c Symbols.c emperor.tab.c emperor.yy.c
 
 emperor.yy.c: emperor.lex
 	$(LEX) -o emperor.yy.c emperor.lex 

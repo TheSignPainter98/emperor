@@ -1,12 +1,13 @@
 #!/usr/bin/make
 CC = gcc
+OUTPUT_FILE = actions.o
 
 .PHONY: all;
 
 all: actions.o;
 
 actions.o:
-	$(CC) -shared -fPIC -c actions.c -o actions.o
+	$(CC) -c actions.c -o $(OUTPUT_FILE)
 
 clean:
-	-@ rm *.o		2>/dev/null	|| true
+	-@ rm $(OUTPUT_FILE)		2>/dev/null	|| true
