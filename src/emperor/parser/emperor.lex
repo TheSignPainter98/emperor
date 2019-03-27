@@ -23,7 +23,7 @@ extern int currentChar;
 	"*"+           				; /**/
 	[^/*\n]+       				; /**/
 	[/]            				; /**/
-	\n             				; /**/
+	\n             				; /* TODO: ADD THE DOCUMENTATION ACTUAL BODY BIT! */
 }
 "/*"							{ BEGIN(commentBlock); }
 <commentBlock>{
@@ -41,7 +41,7 @@ extern int currentChar;
 	"\n"						{ BEGIN(INITIAL); }
 }
 \t*								{ return WHITESPACE; }
-"\n"							{ return EOL; }
+"\n"|"\r"|"\r\n"				{ return EOL; }
 "@"								{ return AT; }
 "."								{ return DOT; }
 ","								{ return COMMA; }
