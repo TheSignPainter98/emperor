@@ -16,7 +16,7 @@
 	
 	int parseFiles(int totalFiles, char** files);
 	int yylex(void);
-	void yyerror(FILE* fp, char* s);
+	void yyerror(FILE* fp, const char* s);
 
 	extern int yylex_init(yyscan_t* scanner);
 	extern int yyset_in(FILE* inputFile, yyscan_t* scanner);
@@ -30,11 +30,19 @@
 
 %start program
 
+%locations
+
+// %define api.pure full
+%define parse.error verbose
+%define parse.lac full
+%verbose
+
 // %define api.value.type {YYSTYPE_t}
 %code requires {#include "AST.h"}
 %code requires {#include "Keywords.h"}
 %code requires {#include "Primitives.h"}
 %code requires {#include "Symbols.h"}
+
 %union 
 {
 	int_t integer;
@@ -359,8 +367,9 @@ extern int main(int argc, char** argv)
 	}
 }
 
-void yyerror(FILE* fp, char* s)
+void yyerror(FILE* fp, const char* s)
 {
+	// Fix bison-bridge and bison-locations for yylloc here!
 	fprintf(stderr, "%s %s\n", "!",s);
 }
 
