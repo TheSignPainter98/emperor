@@ -1,11 +1,12 @@
 #!/usr/bin/make
 
-.PHONY: all test emperor
+.PHONY: all test
 
-all: ;
+all: test ;
 
 test: emperor
-	$(MAKE) -C allParseStructures test
+	-@ ln -s ../src/emperor/emperor ./emperor 2>/dev/null || true
+	./run_tests.sh
 
-emperor: ;
-	$(MAKE) -C .. src
+emperor:
+	$(MAKE) -C .. emperor
