@@ -1,7 +1,11 @@
 LEX = flex
+LEXFLAGS = #-Cfr -8
+
 YACC = bison
-CC = gcc
-CFLAGS = # -shared -fPIC
+YACCFLAGS = -v -d
+
+CC = gcc-8
+CFLAGS = -fPIC -shared # -shared -fPIC
 
 .PHONY: all clean;
 
@@ -11,10 +15,10 @@ parser.o: emperor.tab.c emperor.yy.c AST.c Primitives.c Keywords.c Symbols.c
 	$(CC) $(CFLAGS) -o parser.o AST.c Primitives.c Keywords.c Symbols.c emperor.tab.c emperor.yy.c
 
 emperor.yy.c: emperor.lex
-	$(LEX) -o emperor.yy.c emperor.lex 
+	$(LEX) $(LEXFLAGS) -o emperor.yy.c emperor.lex 
 
 emperor.tab.c: emperor.yacc
-	$(YACC) -v -d -o emperor.tab.c emperor.yacc 
+	$(YACC) $(YACCFLAGS) -o emperor.tab.c emperor.yacc 
 
 emperor.lex:;
 emperor.yacc:;

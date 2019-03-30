@@ -7,5 +7,5 @@ from distutils.extension import Extension
 sourcefiles = ['./parser/emperor.tab.c', './parser/emperor.yy.c', './emperor.pyx']
 extensions = [Extension('emperor', sourcefiles)]
 setup(
-	ext_modules = cythonize(extensions)
+	ext_modules = cythonize(extensions, language_level=3)
 )

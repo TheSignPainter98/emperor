@@ -26,7 +26,10 @@
 	extern struct yy_buffer_state* yy_scan_string(char* str);
 	extern void yy_delete_buffer(struct yy_buffer_state* buffer);
 %}
-%language "C"
+%language "C" 
+
+%code requires { int parseStd(void); } 
+%code requires { int parseFiles(int totalFiles, char** files); }
 
 %start program
 
@@ -342,19 +345,24 @@ int parseFile(FILE* fp)
 	// yylex_init(&scanner);
 	yyset_in(fp, scanner);
 	int returnValue = yyparse(scanner);
-	// yylex_destroy(scanner);
+	yylex_destroy(scanner);
 
 	return returnValue;
+}
+
+int parseStd(void)
+{
+	char** arguments = (char**)malloc(1 * sizeof(char*));
+	arguments[0] = "-";
+	printf("%s\n", "Reading input from stdin");
+	return parseFiles(1, arguments);
 }
 
 extern int parserMain(int argc, char** argv)
 {
 	if (argc <= 1)
 	{
-		char** arguments = (char**)malloc(1 * sizeof(char*));
-		arguments[0] = "-";
-		printf("%s\n", "Reading input from stdin");
-		return parseFiles(1, arguments);
+		return parseStd();
 	}
 	else
 	{
