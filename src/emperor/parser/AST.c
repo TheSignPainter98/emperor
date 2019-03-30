@@ -62,7 +62,7 @@ AstNode_t *makeNode(nodeType_t nodeType, NodeValue_t value, int numChildren, ...
 
 void printNode(AstNode_t *node)
 {
-	char *buffer;
+	char *buffer = NULL;
 	int len;
 
 	// Get the output in the right format
