@@ -26,9 +26,11 @@
 	extern struct yy_buffer_state* yy_scan_string(char* str);
 	extern void yy_delete_buffer(struct yy_buffer_state* buffer);
 %}
-%parse-param { FILE* fp }
+%language "C"
 
 %start program
+
+%parse-param { FILE* fp }
 
 %locations
 
@@ -345,7 +347,7 @@ int parseFile(FILE* fp)
 	return returnValue;
 }
 
-extern int main(int argc, char** argv)
+extern int parserMain(int argc, char** argv)
 {
 	if (argc <= 1)
 	{
