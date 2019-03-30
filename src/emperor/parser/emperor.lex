@@ -38,11 +38,7 @@ extern int currentChar;
 	[/]            				; /**/
 	\n             				; /**/
 }
-"//"							{ BEGIN(commentLine); }
-<commentLine>{
-	[^\n]+						;
-	"\n"						{ BEGIN(INITIAL); }
-}
+\/\/[^\n]*\n					;
 \t*								{ return WHITESPACE; }
 "\n"|"\r"|"\r\n"				{ return EOL; }
 "@"								{ return AT; }
