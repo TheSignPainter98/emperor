@@ -1,0 +1,25 @@
+{
+    "name": "emperor-lang",
+    "displayName": "Emperor Language Support",
+    "description": "Emperor syntax highlighting and language support",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.32.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "emperor",
+            "aliases": ["Emperor", "emperor"],
+            "extensions": [".emp"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "emperor",
+            "scopeName": "source.emperor",
+            "path": "./syntaxes/emperor.tmLanguage.json"
+        }]
+    }
+}
