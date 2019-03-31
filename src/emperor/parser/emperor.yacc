@@ -1,10 +1,5 @@
 %{
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <string.h>
-	#include <unistd.h>
-	#include <printf.h>
-	#include "AST.h"
+	
 	#include "emperor.tab.h"
 
 	typedef void* yyscan_t;
@@ -26,6 +21,12 @@
 %}
 %language "C" 
 
+%code requires { #include <stdio.h> } 
+%code requires { #include <stdlib.h> } 
+%code requires { #include <string.h> } 
+%code requires { #include <unistd.h> } 
+%code requires { #include <printf.h> } 
+%code requires { #include "AST.h" } 
 %code requires { #define STDIN_FLAG "-" } 
 %code requires { int parseStd(void); } 
 %code requires { int parseFiles(int totalFiles, char** files); }
