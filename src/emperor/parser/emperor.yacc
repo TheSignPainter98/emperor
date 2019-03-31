@@ -7,8 +7,6 @@
 	#include "AST.h"
 	#include "emperor.tab.h"
 
-	#define STDIN_FLAG "-"
-
 	typedef void* yyscan_t;
 
 	int currentLine = 1;
@@ -28,6 +26,7 @@
 %}
 %language "C" 
 
+%code requires { #define STDIN_FLAG "-" } 
 %code requires { int parseStd(void); } 
 %code requires { int parseFiles(int totalFiles, char** files); }
 
@@ -295,7 +294,7 @@ int parseFiles(int totalFiles, char** files)
 	for (int i = 0; i < totalFiles; i++)
 	{
 		// Resolve file pointer
-		if (strcmp(files[i], "-") != 0)
+		if (strcmp(files[i], STDIN_FLAG) != 0)
 		{
 			fps[i] = fopen(files[i], "r");
 			if(fps[i] == NULL)
@@ -353,7 +352,7 @@ int parseFile(FILE* fp)
 int parseStd(void)
 {
 	char** arguments = (char**)malloc(1 * sizeof(char*));
-	arguments[0] = "-";
+	arguments[0] = STDIN_FLAG;
 	printf("%s\n", "Reading input from stdin");
 	return parseFiles(1, arguments);
 }
