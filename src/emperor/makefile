@@ -1,5 +1,5 @@
 CC = gcc-8
-CFLAGS := $(CFLAGS) -Wall -Os
+CFLAGS := $(CFLAGS) -Wall -Os -I . -I /usr/include/python3.6m
 CP = cp
 OUTPUT_FILE := ./emperor
 MAKEFLAGS := $(MAKEFLAGS) s
@@ -8,18 +8,18 @@ MAKEFLAGS := $(MAKEFLAGS) s
 
 all: $(OUTPUT_FILE) ;
 
-$(OUTPUT_FILE): ./parser/parser.o ./actions/actions.o ./emperor.c
-	$(CC) $(CFLAGS) -Os -I /usr/include/python3.6m ./emperor.c ./actions/actions.o ./parser/parser.o -lpython3.6m  -o $(OUTPUT_FILE)
+$(OUTPUT_FILE): ./parser/parser.so ./actions/actions.o ./emperor.c
+	$(CC) $(CFLAGS) ./emperor.c ./parser/parser.so ./actions/actions.o -lpython3.6m -o $(OUTPUT_FILE)
 
 ./%.o: ./%.c ./%.h
 
 ./actions/%.o:
 	@$(MAKE) actions
 
-./parser/parser.o:
+./parser/parser.so:
 	@$(MAKE) parser
 
-./emperor.c:
+./emperor.c: ./emperor.pyx
 	cython --embed --directive language_level=3 ./emperor.pyx
 
 actions:
@@ -27,6 +27,8 @@ actions:
 
 parser:
 	@$(MAKE) -C parser
+
+./emperor.pyx: ;
 
 clean:
 	+@$(MAKE) -C actions $@
