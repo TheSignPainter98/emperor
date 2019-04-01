@@ -20,7 +20,7 @@ $(OUTPUT_FILE): ./parser/parser.so ./actions/actions.o ./emperor.c
 	@$(MAKE) parser
 
 ./emperor.c: ./emperor.pyx
-	cython --embed --directive language_level=3 ./emperor.pyx
+	cython3 --embed --directive language_level=3 ./emperor.pyx
 
 actions:
 	@$(MAKE) -C actions
