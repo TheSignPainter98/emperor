@@ -10,7 +10,7 @@ cdef extern from "./parser/emperor.tab.h":
 	
 def _parseArguments(args:[str]) -> argparse.Namespace:
 	parser:argparse.ArgumentParser = argparse.ArgumentParser(
-		prog = 'emperor',
+		# prog = 'emperor',
 		description = f'''This is the compiler for the Emperor language 
 			v{emperorVersion}''',
 		epilog = '''This is maintained by Edward Jones, and source code can be 
