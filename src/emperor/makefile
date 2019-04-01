@@ -4,7 +4,9 @@ CP = cp
 OUTPUT_FILE := ./emperor
 MAKEFLAGS := $(MAKEFLAGS) s
 
-.PHONY: all clean actions parser run
+MAN_FILE := ./emperor.1
+
+.PHONY: all clean actions parser run man
 
 all: $(OUTPUT_FILE) ;
 
@@ -30,16 +32,21 @@ parser:
 
 ./emperor.pyx: ;
 
+install: $(OUTPUT_FILE) $(MAN_FILE)
+	echo "Installing! :D"
+
+man: $(MAN_FILE)
+
+$(MAN_FILE): $(OUTPUT_FILE)
+	./emperor --help | groff -Tascii -man > $(MAN_FILE)
+
 clean:
 	+@$(MAKE) -C actions $@
 	+@$(MAKE) -C parser $@
+	-@$(RM) $(MAN_FILE)			2>/dev/null	|| true
 	-@$(RM) *.o					2>/dev/null	|| true
 	-@$(RM) *.so				2>/dev/null	|| true
 	-@$(RM) emperor.c			2>/dev/null	|| true
 	-@$(RM) Python.h			2>/dev/null	|| true
 	-@$(RM) $(OUTPUT_FILE)		2>/dev/null	|| true
 	-@$(RM) -R build			2>/dev/null	|| true
-	
-# THE FOLLOWING SEEMS TO WORK!
-# cython --embed ./emperor.pyx
-# gcc-8 -Os -I /usr/include/python3.6m ./emperor.c -lpython3.6m -o ./emperor
