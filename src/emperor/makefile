@@ -21,7 +21,7 @@ $(OUTPUT_FILE): ./parser/parser.so ./actions/actions.o ./emperor.c
 ./parser/parser.so:
 	@$(MAKE) parser
 
-./emperor.c: ./emperor.pyx
+./emperor.c: ./emperor.pyx 
 	cython3 --embed --directive language_level=3 ./emperor.pyx
 
 actions:
@@ -30,7 +30,7 @@ actions:
 parser:
 	@$(MAKE) -C parser
 
-./emperor.pyx: ;
+./emperor.pyx:
 
 install: $(OUTPUT_FILE) $(MAN_FILE)
 	echo "Installing! :D"
