@@ -2,7 +2,7 @@
 import sys
 
 emperorVersion:str = '0.1.0'
-emperorVersionString:str = 'emperor 0.1.0\nWritten by Edward Jones\n\nCopyright (C) 2015 Edward Jones\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.'
+emperorVersionString:str = 'emperor 0.1.0\nWritten by Edward Jones\n\nCopyright (C) 2019 Edward Jones\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.'
 
 ################################################################################
 import argparse
@@ -14,9 +14,10 @@ import textwrap
 STDIN_FLAG = '-'
 
 class TroffArgumentParser(argparse.ArgumentParser):
-	def __init__(self, licence:str=None, seeAlso:str=None, date:str=date.today().strftime('%d %B %Y'), bugs:str=None, *args, **kwargs):
+	def __init__(self, licence:str=None, version:str=None, seeAlso:str=None, date:str=date.today().strftime('%d %B %Y'), bugs:str=None, *args, **kwargs):
 		super(TroffArgumentParser, self).__init__(*args, **kwargs)
 		self.licence = licence
+		self.version = version
 		self.date = date
 		self.seeAlso = seeAlso
 		self.bugs = bugs
@@ -25,7 +26,7 @@ class TroffArgumentParser(argparse.ArgumentParser):
 		options:[argparse.Action] = self._actions
 		options.sort(key=lambda option : self._checkMandatory(option))
 
-		troffOutput:str = self._header(self.prog, self.date, self.licence)
+		troffOutput:str = self._header(self.prog, self.date, self.version, self.licence)
 		troffOutput += self._name(self.prog, self.description)
 		troffOutput += self._synopsis(self.prog, options)
 		troffOutput += self._description(self.description)
@@ -38,8 +39,8 @@ class TroffArgumentParser(argparse.ArgumentParser):
 	def _checkMandatory(self, action:argparse.Action) -> bool:
 		return True if action.option_strings == [] else False
 
-	def _header(self, program:str, date:str, licence:str) -> str:
-		return f'{licence}\n.TH {self.prog.upper()} 1 "{self.date}"\n'
+	def _header(self, program:str, date:str, version:str, licence:str) -> str:
+		return f'{licence}\n.TH {program.upper()} 1 "{date}" "{program} {version}" "User Commands" "fdsa"\n'
 
 	def _name(self, prog:str, description:str) -> str:
 		return f'.SH "NAME"\n\\fB{prog}\\fP - {description}\n'
@@ -113,6 +114,42 @@ class TroffArgumentParser(argparse.ArgumentParser):
 	def _authors(self, epilog:str) -> str:
 		return f'.SH "AUTHOR"\n{epilog}\n' if epilog is not None else ''
 
+	def parse_args(self, args:[str]) -> argparse.Namespace:
+		parsedArgs:argparse.Namespace = super(TroffArgumentParser, self).parse_args(args)
+		parsedArgs = self._validateArgs(parsedArgs)
+		return parsedArgs
+
+	def _validateArgs(self, arguments:argparse.Namespace) -> argparse.Namespace:
+		if arguments.version:
+			print(emperorVersionString)
+			sys.exit(0)
+
+		if arguments.output_man:
+			print(self.toTroff(), end='')
+			sys.exit(0)
+
+		if arguments.files == []:
+			arguments.files = [STDIN_FLAG]
+		else:
+			arguments.files = list(map(_sanitiseFilePath, arguments.files))
+
+		# arguments.files = list(map(sanitiseFilePath, arguments.Files))
+
+		# arguments.files = unique(arguments.files)
+
+		# if arguments.outputFile is None:
+		# 	if len(arguments.files) == 1:
+		# 		if arguments.files == STDIN_FLAG:
+		# 			arguments.outputFile = 'emperorOut.o'
+		# 		else:
+		# 			arguments.outputFile = os.path.split(arguments.files[0])[0] + '.o'
+		# outputParts:str*str = os.path.split(arguments.files[0])
+		# outputFile = outputParts[1].split('.')[0] + '.o'
+		# arguments.outputFile = outputParts + '/' + outputFile
+
+		return arguments
+
+
 
 def parseArguments(args:[str]) -> argparse.Namespace:
 	parser:TroffArgumentParser = TroffArgumentParser(
@@ -140,6 +177,7 @@ def parseArguments(args:[str]) -> argparse.Namespace:
 			'.\\" <http://www.gnu.org/licenses/>.\n'
 			'.\\" %%%LICENSE_END'
 		),
+		version = emperorVersion,
 		description = f'''Compiler for the Emperor language v{emperorVersion}''',
 		seeAlso = r'''\fBgcc\fR(1), \fBdux\fP(1), \fBbison\fP(1), \fBflex\fP(1)''',
 		bugs = f'''There are no known bugs at this time! :D If you find any, however, please report them at <https://github.com/TheSignPainter98/emperor/issues>''',
@@ -148,12 +186,12 @@ def parseArguments(args:[str]) -> argparse.Namespace:
 	parser.add_argument('-v', '--verbose', action='store_true', help='Output verbosity')
 	parser.add_argument('-V', '--version', action='store_true', help='Output version and exit')
 	parser.add_argument('-m', '--man_page', dest='output_man', action='store_true', help='Output man page formatted in Troff and exit')
-	parser.add_argument('-O', '--optimisation', choices=[ 's', '0', '1', '2' ], default=0, dest='optimisation', help='Compiler optimisation level (see gcc)')
+	parser.add_argument('-O', '--optimisation', choices=[ 's', '0', '1', '2' ], default=0, dest='optimisation', help='Compiler optimisation level as speficied in \\fBgcc\\fP')
 	parser.add_argument('-c', '--to-c', action='store_true', dest='compileCOnly', help='Translate to C (skips compilation step)')
 	parser.add_argument('-o', '--output', type=str, dest='outputFile', metavar='OUTPUT_FILE', default=None, action='store', help='Specify output file')
-	parser.add_argument('files', metavar='file', type=str, nargs='*', help='A file to compile')
+	parser.add_argument('files', metavar='file', type=str, nargs='*', help=f'A file to compile, use {STDIN_FLAG} to read from stdin')
 	
-	return _validateArgs(parser, parser.parse_args(args))
+	return parser.parse_args(args)
 
 def _unique(inputList:[str], key=lambda x : x) -> [str]:
 	uniqueList:[str] = []
@@ -172,37 +210,6 @@ def _sanitiseFilePath(filePath:str) -> str:
 		return os.path.abspath(filePath)
 	else:
 		return filePath
-
-def _validateArgs(parser:TroffArgumentParser, arguments:argparse.Namespace) -> argparse.Namespace:
-	if arguments.version:
-		print(emperorVersionString)
-		sys.exit(0)
-
-	if arguments.output_man:
-		print(parser.toTroff(), end='')
-		sys.exit(0)
-
-	if arguments.files == []:
-		arguments.files = [STDIN_FLAG]
-	else:
-		arguments.files = list(map(_sanitiseFilePath, arguments.files))
-
-	# arguments.files = list(map(sanitiseFilePath, arguments.Files))
-
-	# arguments.files = unique(arguments.files)
-
-	# if arguments.outputFile is None:
-	# 	if len(arguments.files) == 1:
-	# 		if arguments.files == STDIN_FLAG:
-	# 			arguments.outputFile = 'emperorOut.o'
-	# 		else:
-	# 			arguments.outputFile = os.path.split(arguments.files[0])[0] + '.o'
-	# outputParts:str*str = os.path.split(arguments.files[0])
-	# outputFile = outputParts[1].split('.')[0] + '.o'
-	# arguments.outputFile = outputParts + '/' + outputFile
-
-
-	return arguments
 
 ################################################################################
 
