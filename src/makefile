@@ -1,11 +1,17 @@
 #!/usr/bin/make
 
-.PHONY: all emperor emperordoc emperorlint clean
+.PHONY: all emperor emperor-lib emperor-langemperordoc emperorlint clean
 
-all: emperor emperordoc emperorlint;
+all: emperor emperor-lib emperor-lang emperordoc emperorlint;
 
 emperor: 
 	+$(MAKE) -C emperor
+
+emperor-lib:
+	+$(MAKE) -C emperor-lib
+
+emperor-lang:
+	+$(MAKE) -C emperor-lang
 
 emperordoc:
 	+$(MAKE) -C emperordoc
@@ -16,4 +22,6 @@ emperorlint:
 clean:
 	+$(MAKE) -C emperor clean
 	+$(MAKE) -C emperordoc clean
+	+$(MAKE) -C emperor-lib clean
+	+$(MAKE) -C emperor-lang clean
 	+$(MAKE) -C emperorlint clean
