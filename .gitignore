@@ -71,7 +71,7 @@ temp/
 
 # Cython Things
 *.html
-emperor.c
+*.py.c
 
 # Misc
 *.log
