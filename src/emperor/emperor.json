@@ -1,0 +1,30 @@
+{
+	"version": "0.1.0",
+	"licence": [
+		"Hello",
+		"World!"
+	],
+	"arguments": {
+		"optional": [
+			{
+				"strings": [
+					"-h",
+					"--help"
+				],
+				"help": "Display this help message and exit"
+			}
+		],
+		"mandatory": [
+			{
+				"strings": [
+					"file"
+				],
+				"help": "A file to compile"
+			}
+		]
+	},
+	"help": [
+		"Hello, again",
+		"World!"
+	]
+}
