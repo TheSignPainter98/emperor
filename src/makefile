@@ -1,10 +1,10 @@
 #!/usr/bin/make
 
-.PHONY: all emperor emperordoc emperorlint clean
+.PHONY: all emperor emperordoc emperorlint mangen clean
 
 all: emperor emperordoc emperorlint;
 
-emperor: 
+emperor: mangen
 	+$(MAKE) -C emperor
 
 emperordoc:
@@ -13,7 +13,11 @@ emperordoc:
 emperorlint:
 	+$(MAKE) -C emperorlint
 
+mangen:
+	+$(MAKE) -C mangen
+
 clean:
 	+$(MAKE) -C emperor clean
 	+$(MAKE) -C emperordoc clean
 	+$(MAKE) -C emperorlint clean
+	+$(MAKE) -C mangen clean

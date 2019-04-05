@@ -41,6 +41,8 @@ emperordoc
 !emperordoc/
 emperorlint
 !emperorlint/
+mangen
+!mangen/
 
 # Debug files
 *.dSYM/
