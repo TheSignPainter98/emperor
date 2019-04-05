@@ -58,7 +58,8 @@ Mkfile.old
 dkms.conf
 
 # VSCode Things
-.vscode
+.vscode/
+ipch/
 markdown-styles.css
 temp/
 
