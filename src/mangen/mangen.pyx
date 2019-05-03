@@ -104,6 +104,12 @@ class TroffArgumentParser(object):
 		if seeAlso == []:
 			return ''
 		else:
+			# seeAlso = list(map(lambda see: '('.join(see.split('(')), seeAlso))
+			for i in range(len(seeAlso)):
+				split:[str] = seeAlso[i].split('(')
+				see:str = split[0]
+				sec:str = split[1].replace(')', '')
+				seeAlso[i] = f'\\fB{see}\\fR({sec})'
 			seeAlsos:str = ', '.join(seeAlso)
 			return f'.SH "SEE ALSO"\n{seeAlsos}\n'
 

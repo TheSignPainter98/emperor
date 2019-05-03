@@ -2,7 +2,7 @@
 import sys
 
 emperorVersion:str = '0.1.0'
-emperorVersionString:str = 'emperor 0.1.0\nWritten by Edward Jones\n\nCopyright (C) 2019 Edward Jones\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.'
+emperorVersionString:str = f'emperor {emperorVersion}\nWritten by Edward Jones\n\nCopyright (C) 2019 Edward Jones\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.'
 
 ################################################################################
 import argparse
@@ -157,7 +157,7 @@ class TroffArgumentParser(argparse.ArgumentParser):
 def parseArguments(args:[str]) -> argparse.Namespace:
 	parser: ArgumentParserWithJson = ArgumentParserWithJson(
 		licence=[
-			'Copyright (c) <year>, <copyright holder>\n',
+			'Copyright (c) 2019, Edward Jones\n',
 			'\n',
 			'%%%%%%LICENSE_START(GPLv2+_DOC_FULL)\n',
 			'This is free documentation; you can redistribute it and/or\n',
@@ -182,13 +182,12 @@ def parseArguments(args:[str]) -> argparse.Namespace:
 		],
 		version = emperorVersion,
 		description = f'''Compiler for the Emperor language v{emperorVersion}''',
-		seeAlso = [f'\\fBgcc\\fR(1)', f'\\fBdux\\fP(1)', f'\\fBbison\\fP(1)', f'\\fBflex\\fP(1)'],
+		seeAlso = ['gcc(1)', 'dux(1)', 'bison(1)', 'flex(1)'],
 		bugs = f'''There are no known bugs at this time! :D If you find any, however, please report them at <https://github.com/TheSignPainter98/emperor/issues>''',
 		epilog = '''This is maintained by Edward Jones, and source code can be found at <https://github.com/TheSignPainter98/emperor>'''
 	)	
 	parser.add_argument('-v', '--verbose', action='store_true', help='Output verbosity')
 	parser.add_argument('-V', '--version', action='store_true', help='Output version and exit')
-	parser.add_argument('-m', '--man_page', dest='output_man', action='store_true', help='Output man page formatted in Troff and exit')
 	parser.add_argument('-O', '--optimisation', choices=[ 's', '0', '1', '2' ], default=0, dest='optimisation', help='Compiler optimisation level as speficied in \\fBgcc\\fP')
 	parser.add_argument('-c', '--to-c', action='store_true', dest='compileCOnly', help='Translate to C (skips compilation step)')
 	parser.add_argument('-o', '--output', type=str, dest='outputFile', metavar='OUTPUT_FILE', default=None, action='store', help='Specify output file')
