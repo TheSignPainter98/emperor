@@ -4,11 +4,17 @@ CYTHON := cython3
 CYTHON_FLAGS := --embed --directive language_level=3
 CP = cp
 OUTPUT_FILE := ./emperor
+MANGEN_LOCATION := ../mangen/
+MANGEN := $(MANGEN_LOCATION)mangen
 MAKEFLAGS := $(MAKEFLAGS) s
 
 MAN_FILE := ./emperor.1
+COMPRESSED_MAN_FILE := ./emperor.1.gz
 
-.PHONY: all clean actions parser run man install
+EXECUTABLE_INSTALL_LOCATION := /usr/bin/emperor
+MAN_INSTALL_LOCATION := /usr/share/man/man1/emperor.1.gz
+
+.PHONY: all clean actions parser run man install clean-installation
 
 all: $(OUTPUT_FILE) ;
 
@@ -34,21 +40,37 @@ parser:
 
 ./emperor.pyx:
 
-install: $(OUTPUT_FILE) $(MAN_FILE)
-	echo "Installing! :D"
+install: $(EXECUTABLE_INSTALL_LOCATION) $(MAN_INSTALL_LOCATION);
+
+$(EXECUTABLE_INSTALL_LOCATION): $(OUTPUT_FILE)
+	sudo install $(OUTPUT_FILE) $(EXECUTABLE_INSTALL_LOCATION)
+
+$(MAN_INSTALL_LOCATION): $(COMPRESSED_MAN_FILE)
+	sudo install $(COMPRESSED_MAN_FILE) $(MAN_INSTALL_LOCATION)
+
+$(COMPRESSED_MAN_FILE): $(MAN_FILE)
+	gzip --keep --best --to-stdout $(MAN_FILE) > $(COMPRESSED_MAN_FILE)
 
 man: $(MAN_FILE)
 
-$(MAN_FILE): $(OUTPUT_FILE)
-	./emperor --help | groff -Tascii -man > $(MAN_FILE)
+$(MAN_FILE): $(OUTPUT_FILE) $(MANGEN)
+	./emperor -* | $(MANGEN) > $(MAN_FILE)
+
+$(MANGEN):
+	+@$(MAKE) -C $(MANGEN_LOCATION) install
+
+clean-installation: clean
+	-@ sudo $(RM) $(MAN_INSTALL_LOCATION)
+	-@ sudo $(RM) $(EXECUTABLE_INSTALL_LOCATION)
 
 clean:
 	+@$(MAKE) -C actions $@
 	+@$(MAKE) -C parser $@
-	-@$(RM) $(MAN_FILE)			2>/dev/null	|| true
-	-@$(RM) *.o					2>/dev/null	|| true
-	-@$(RM) *.so				2>/dev/null	|| true
-	-@$(RM) emperor.c			2>/dev/null	|| true
-	-@$(RM) Python.h			2>/dev/null	|| true
-	-@$(RM) $(OUTPUT_FILE)		2>/dev/null	|| true
-	-@$(RM) -R build			2>/dev/null	|| true
+	-@$(RM) $(COMPRESSED_MAN_FILE)			2>/dev/null	|| true
+	-@$(RM) $(MAN_FILE)						2>/dev/null	|| true
+	-@$(RM) *.o								2>/dev/null	|| true
+	-@$(RM) *.so							2>/dev/null	|| true
+	-@$(RM) emperor.c						2>/dev/null	|| true
+	-@$(RM) Python.h						2>/dev/null	|| true
+	-@$(RM) $(OUTPUT_FILE)					2>/dev/null	|| true
+	-@$(RM) -R build						2>/dev/null	|| true
