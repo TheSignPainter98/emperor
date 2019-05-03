@@ -75,8 +75,11 @@ temp/
 *.html
 *.py.c
 
+# Troff things
+*.1*
+*.[gt]roff
+*.json
+
 # Misc
 *.log
 images/
-*.man
-*.[gt]roff

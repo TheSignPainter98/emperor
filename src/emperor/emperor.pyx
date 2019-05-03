@@ -9,12 +9,12 @@ import argparse
 from datetime import date
 import inspect
 import os.path
-import textwrap
+import json
 
 STDIN_FLAG = '-'
 
 class TroffArgumentParser(argparse.ArgumentParser):
-	def __init__(self, licence:str=None, version:str=None, seeAlso:str=None, date:str=date.today().strftime('%d %B %Y'), bugs:str=None, *args, **kwargs):
+	def __init__(self, licence:[str]=[], version:str=None, seeAlso:[str]=[], date:str=date.today().strftime('%d %B %Y'), bugs:str=None, *args, **kwargs):
 		super(TroffArgumentParser, self).__init__(*args, **kwargs)
 		self.licence = licence
 		self.version = version
@@ -39,8 +39,9 @@ class TroffArgumentParser(argparse.ArgumentParser):
 	def _checkMandatory(self, action:argparse.Action) -> bool:
 		return True if action.option_strings == [] else False
 
-	def _header(self, program:str, date:str, version:str, licence:str) -> str:
-		return f'{licence}\n.TH {program.upper()} 1 "{date}" "{program} {version}" "User Commands" "fdsa"\n'
+	def _header(self, program:str, date:str, version:str, licence:[str]) -> str:
+		licenceString:str = '\n'.join(list(map(lambda line: r'.\" ' + line)))
+		return f'{licenceString}\n.TH {program.upper()} 1 "{date}" "{program} {version}" "User Commands" "fdsa"\n'
 
 	def _name(self, prog:str, description:str) -> str:
 		return f'.SH "NAME"\n\\fB{prog}\\fP - {description}\n'
@@ -105,8 +106,12 @@ class TroffArgumentParser(argparse.ArgumentParser):
 				formattedList += item
 		return formattedList
 
-	def _seeAlso(self, seeAlso:str) -> str:
-		return f'.SH "SEE ALSO"\n{seeAlso}\n' if seeAlso is not None else ''
+	def _seeAlso(self, seeAlso:[str]) -> str:
+		if seeAlso == []:
+			return ''
+		else:
+			seeAlsos:str = ', '.join(seeAlso)
+			return f'.SH "SEE ALSO"\n{seeAlsos}\n'
 
 	def _bugs(self, bugs:str) -> str:
 		return f'.SH "BUGS"\n{bugs}\n' if bugs is not None else ''
@@ -149,37 +154,35 @@ class TroffArgumentParser(argparse.ArgumentParser):
 
 		return arguments
 
-
-
 def parseArguments(args:[str]) -> argparse.Namespace:
-	parser:TroffArgumentParser = TroffArgumentParser(
-		licence=(
-			'.\\" Copyright (c) <year>, <copyright holder>\n'
-			'.\\"\n'
-			'.\\" %%%LICENSE_START(GPLv2+_DOC_FULL)\n'
-			'.\\" This is free documentation; you can redistribute it and/or\n'
-			'.\\" modify it under the terms of the GNU General Public License as\n'
-			'.\\" published by the Free Software Foundation; either version 2 of\n'
-			'.\\" the License, or (at your option) any later version.\n'
-			'.\\"\n'
-			'.\\" The GNU General Public License\'s references to "object code"\n'
-			'.\\" and "executables" are to be interpreted as the output of any\n'
-			'.\\" document formatting or typesetting system, including\n'
-			'.\\" intermediate and printed output.\n'
-			'.\\"\n'
-			'.\\" This manual is distributed in the hope that it will be useful,\n'
-			'.\\" but WITHOUT ANY WARRANTY; without even the implied warranty of\n'
-			'.\\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n'
-			'.\\" GNU General Public License for more details.\n'
-			'.\\"\n'
-			'.\\" You should have received a copy of the GNU General Public\n'
-			'.\\" License along with this manual; if not, see\n'
-			'.\\" <http://www.gnu.org/licenses/>.\n'
-			'.\\" %%%LICENSE_END'
-		),
+	parser: ArgumentParserWithJson = ArgumentParserWithJson(
+		licence=[
+			'Copyright (c) <year>, <copyright holder>\n',
+			'\n',
+			'%%%%%%LICENSE_START(GPLv2+_DOC_FULL)\n',
+			'This is free documentation; you can redistribute it and/or\n',
+			'modify it under the terms of the GNU General Public License as\n',
+			'published by the Free Software Foundation; either version 2 of\n',
+			'the License, or (at your option) any later version.\n',
+			'\n',
+			'The GNU General Public License\'s references to "object code"\n',
+			'and "executables" are to be interpreted as the output of any\n',
+			'document formatting or typesetting system, including\n',
+			'intermediate and printed output.\n',
+			'\n',
+			'This manual is distributed in the hope that it will be useful,\n',
+			'but WITHOUT ANY WARRANTY; without even the implied warranty of\n',
+			'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n',
+			'GNU General Public License for more details.\n',
+			'\n',
+			'You should have received a copy of the GNU General Public\n',
+			'License along with this manual; if not, see\n',
+			'<http://www.gnu.org/licenses/>.\n',
+			'%%%%%%LICENSE_END'
+		],
 		version = emperorVersion,
 		description = f'''Compiler for the Emperor language v{emperorVersion}''',
-		seeAlso = r'''\fBgcc\fR(1), \fBdux\fP(1), \fBbison\fP(1), \fBflex\fP(1)''',
+		seeAlso = [f'\\fBgcc\\fR(1)', f'\\fBdux\\fP(1)', f'\\fBbison\\fP(1)', f'\\fBflex\\fP(1)'],
 		bugs = f'''There are no known bugs at this time! :D If you find any, however, please report them at <https://github.com/TheSignPainter98/emperor/issues>''',
 		epilog = '''This is maintained by Edward Jones, and source code can be found at <https://github.com/TheSignPainter98/emperor>'''
 	)	
@@ -192,6 +195,46 @@ def parseArguments(args:[str]) -> argparse.Namespace:
 	parser.add_argument('files', metavar='file', type=str, nargs='*', help=f'A file to compile, use {STDIN_FLAG} to read from stdin')
 	
 	return parser.parse_args(args)
+
+class ArgumentParserWithJson(argparse.ArgumentParser):
+	def __init__(self, licence:[str]=[], version:str=None, seeAlso:[str]=[], date:str=date.today().strftime('%d %B %Y'), bugs:str=None, *args, **kwargs):
+		super(ArgumentParserWithJson, self).__init__(*args, **kwargs)
+		self.licence = licence
+		self.version = version
+		self.date = date
+		self.seeAlso = seeAlso
+		self.bugs = bugs
+		self.add_argument('-*', '--arg-spec', dest='arg_spec', action='store_true', help='Output a json specification for the arguments')
+
+	def parse_args(self, args:[str]) -> argparse.Namespace:
+		nameSpace:argparse.Namespace = super(ArgumentParserWithJson, self).parse_args(args)
+		if nameSpace.arg_spec:
+			print(self.toJson())
+		return nameSpace
+
+	def toJson(self) -> str:
+		allowedKeys:[str] = ['licence', 'version', 'date', 'seeAlso', 'bugs', 'prog', 'description', 'epilog']
+		keys:[str] = [key for key in self.__dict__ if key in allowedKeys]
+		options:dict = {}
+		for key in keys:
+			options[key] = self.__dict__[key]
+
+		keyOptions:dict = {} 
+		actions = self.__dict__['_actions']
+		actionList:[] = []
+		seenOptionStrings:[str] = []
+		for action in actions:
+			# actionObj = actions[action]
+			optionString:str = action.option_strings[0] if 'option_strings' in action.__dict__ and len(action.option_strings) >= 1 else ''
+			if optionString == '' or optionString not in seenOptionStrings:
+				actionList.append({k: action.__dict__[k] for k in [ k for k in action.__dict__ if k not in ['container', 'type'] ] })
+				# actionList.append(action.__dict__)
+			# if optionString not in seenOptionStrings:
+			seenOptionStrings.append(optionString)
+		options['actions'] = actionList
+		return json.dumps(options)
+		# return json.dumps(self.__dict__, indent=4, ensure_ascii=False)
+
 
 def _unique(inputList:[str], key=lambda x : x) -> [str]:
 	uniqueList:[str] = []
@@ -218,14 +261,7 @@ def _sanitiseFilePath(filePath:str) -> str:
 	
 def main(args:[str]) -> int:
 	arguments:argparse.NameSpace = parseArguments(args)
-	print('Argument is verbose <==> %s' %('true' if arguments.verbose else 'false'))
-
-	print('Hello, world! This is Cython!')
-
-	print(f'This will be running on input files: {arguments.files}')
-	print(f'Running at optimisation level: {arguments.optimisation}')
-	print(f'Compiling to C only?: {arguments.compileCOnly}')
-	print(f'Output will be written in \"{arguments.outputFile}\"')
+	return 0
 
 if __name__ == '__main__':
 	main(sys.argv[1:])
