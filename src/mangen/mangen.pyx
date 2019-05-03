@@ -140,9 +140,8 @@ def parseArguments(args:[str]) -> argparse.Namespace:
 	parser.add_argument('-i', '--input_file', dest='inputFile', help='Input json spec', default=None)
 	parser.add_argument('-o', '--output_file', dest='outputFile', help='Man-page output file', default=sys.stdout)
 
-	# parser.add_argument('-', '--stdin', dest='useStdin', action='store_true', help='Use stdin', metavar='-', nargs='?', default=False)
-	# parser.add_argument('-i', '--input_file', dest='inputFile', help='Input json spec', metavar='file', nargs='?', default=sys.stdin)
-	# parser.add_argument('-o', '--output_file', dest='outputFile', help='Man-page output file', metavar='file', nargs='?', default=sys.stdout)
+	if len(args) == 0:
+		parser.print_usage(sys.stderr)
 	
 	return parser.parse_args(args)
 
@@ -165,16 +164,20 @@ def main(args:[str]) -> int:
 			return 1
 
 	try:
-		jsonDict:dict = json.loads(inputString)
-	except json.decoder.JSONDecodeError:
+		jsonReturn:object = json.loads(inputString)
+		if type(jsonReturn) != dict:
+			printe(f'Got JSON of type "{type(jsonReturn).__name__}", expected a dictionary')
+			return 1
+		jsonDict:dict = jsonReturn
+	except json.decoder.JSONDecodeError as jsonDe:
 		printe('Could not decode JSON input')
+		printe(jsonDe)
 		return 1
 
 	troffArgumentParser:TroffArgumentParser = TroffArgumentParser(json=jsonDict)
 
 	# Output
 	outputString:str = troffArgumentParser.toTroff()
-	printe(arguments.outputFile == sys.stdout)
 	if arguments.outputFile == sys.stdout:
 		print(outputString, end='')
 	else:
