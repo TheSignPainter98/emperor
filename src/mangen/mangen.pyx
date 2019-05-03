@@ -8,7 +8,7 @@ import argparse
 class TroffArgumentParser(object):
 	def __init__(self, json:dict=None, licence:[str]=[], version:str=None, seeAlso:[str]=[], date:str=date.today().strftime('%d %B %Y'), bugs:str=None, *args, **kwargs):
 		super(TroffArgumentParser, self).__init__(*args, **kwargs)
-		self.prog = json['prog'] if json is not None and 'prog' in json else sys.args[0]
+		self.prog = json['prog'] if json is not None and 'prog' in json else ''
 		self.description = json['description'] if json is not None and 'description' in json else '' 
 		self.licence = json['licence'] if json is not None and 'licence' in json else licence
 		self.version = json['version'] if json is not None and 'version' in json else version
@@ -16,7 +16,7 @@ class TroffArgumentParser(object):
 		self.seeAlso = json['seeAlso'] if json is not None and 'seeAlso' in json else seeAlso
 		self.bugs = json['bugs'] if json is not None and 'bugs' in json else bugs
 		self._actions:[argparse.Action] = json['actions'] if json is not None and 'actions' in json else []
-		self.epilog = json['epilog'] if json is not None and 'epilog' in json else ''
+		self.epilog = json['epilog'] if json is not None and 'epilog' in json else None
 
 	def toTroff(self) -> str:
 		options:[argparse.Action] = self._actions
@@ -33,8 +33,13 @@ class TroffArgumentParser(object):
 		return troffOutput
 
 	def _header(self, program:str, date:str, version:str, licence:[str]) -> str:
-		licenceString:str = ''.join(list(map(lambda line: r'.\" ' + line, licence)))
-		return f'{licenceString}\n.TH {program.upper()} 1 "{date}" "{program} {version}" "User Commands" "fdsa"\n'
+		licenceString:str
+		if licence != []:
+			licenceString = ''.join(list(map(lambda line: r'.\" ' + line, licence))) + '\n'
+		else:
+			licenceString = ''
+		programVersion:str = f'{program} {version}' if version is not None else program
+		return f'{licenceString}.TH {program.upper()} 1 "{date}" "{programVersion}" "User Commands" "fdsa"\n'
 
 	def _name(self, prog:str, description:str) -> str:
 		return f'.SH "NAME"\n\\fB{prog}\\fP - {description}\n'
@@ -49,44 +54,47 @@ class TroffArgumentParser(object):
 			return ''
 
 	def _options(self, options:[argparse.Action]) -> str:
-		description:str = f'.SH "OPTIONS"'
-		firstOption:bool = True
-		previousWasMandatory:bool = False
-		mandatory:bool = False
-		for option in options:
-			mandatory = option['required']
-			if firstOption:
-				if mandatory:
+		if options == []:
+			return ''
+		else:
+			description:str = f'.SH "OPTIONS"'
+			firstOption:bool = True
+			previousWasMandatory:bool = False
+			mandatory:bool = False
+			for option in options:
+				mandatory = option['required']
+				if firstOption:
+					if mandatory:
+						description += f'\n.SS "Mandatory arguments"'
+					else:
+						description += f'\n.SS "Optional arguments"'
+				elif mandatory and not previousWasMandatory:
 					description += f'\n.SS "Mandatory arguments"'
-				else:
-					description += f'\n.SS "Optional arguments"'
-			elif mandatory and not previousWasMandatory:
-				description += f'\n.SS "Mandatory arguments"'
-				doingMandatory = True
-			# 	switchToPrintingMandatoryOptions = False
-			# if not self._checkMandatory(option):
-			# 	switchToPrintingMandatoryOptions = True
-			optionString:str = self._formatList(option['option_strings']) if option['option_strings'] != [] else option['metavar']
-			optionString = r'\fB' + optionString + r'\fP '
-			if option['choices'] is not None:
-				choices:str = self._formatList(option['choices'], separator=',')
-				optionString += r'\fI{' + choices + r'}\fP'
-			elif option['nargs'] is None:
-				optionString += r'\fI' + (option['metavar'].upper() if option['metavar'] is not None else option['dest'].upper()) + r'\fP'
-				pass
-			elif option['nargs'] == '*':
-				pass
-			elif option['nargs'] == '+':
-				pass
-			elif int(option['nargs']) >= 0:
-				pass
+					doingMandatory = True
+				# 	switchToPrintingMandatoryOptions = False
+				# if not self._checkMandatory(option):
+				# 	switchToPrintingMandatoryOptions = True
+				optionString:str = self._formatList(option['option_strings']) if option['option_strings'] != [] else option['metavar']
+				optionString = r'\fB' + optionString + r'\fP '
+				if option['choices'] is not None:
+					choices:str = self._formatList(option['choices'], separator=',')
+					optionString += r'\fI{' + choices + r'}\fP'
+				elif option['nargs'] is None:
+					optionString += r'\fI' + (option['metavar'].upper() if option['metavar'] is not None else option['dest'].upper()) + r'\fP'
+					pass
+				elif option['nargs'] == '*':
+					pass
+				elif option['nargs'] == '+':
+					pass
+				elif int(option['nargs']) >= 0:
+					pass
 
-			optionHelp:str = option['help']
-			optionDescription:str = f'\n.TP\n{optionString}\n{optionHelp}'
-			description += optionDescription
-			firstOption = False
-			previousWasMandatory = option['required']
-		return description + '\n'
+				optionHelp:str = option['help']
+				optionDescription:str = f'\n.TP\n{optionString}\n{optionHelp}'
+				description += optionDescription
+				firstOption = False
+				previousWasMandatory = option['required']
+			return description + '\n'
 
 	def _formatList(self, lst:[str], separator:str=', ') -> str:
 		formattedList:str = ''
@@ -124,23 +132,54 @@ def printe(*args, **kwargs):
 	print(*args, file=sys.stderr, **kwargs)
 
 
+def parseArguments(args:[str]) -> argparse.Namespace:
+	parser: argparse.ArgumentParser = argparse.ArgumentParser()
+
+	parser.add_argument('-?', action='help', help='Show this help message and exit')
+	parser.add_argument('-', '--stdin', dest='useStdin', action='store_true', help='Use stdin', default=False)
+	parser.add_argument('-i', '--input_file', dest='inputFile', help='Input json spec', default=None)
+	parser.add_argument('-o', '--output_file', dest='outputFile', help='Man-page output file', default=sys.stdout)
+
+	# parser.add_argument('-', '--stdin', dest='useStdin', action='store_true', help='Use stdin', metavar='-', nargs='?', default=False)
+	# parser.add_argument('-i', '--input_file', dest='inputFile', help='Input json spec', metavar='file', nargs='?', default=sys.stdin)
+	# parser.add_argument('-o', '--output_file', dest='outputFile', help='Man-page output file', metavar='file', nargs='?', default=sys.stdout)
+	
+	return parser.parse_args(args)
+
 def main(args:[str]) -> int:
-	if not all(list(map(lambda arg: arg.endswith('.json'), args))):
-		printe('Inputs must have the ".json" extension')
-		badFiles:[str] = list(filter(lambda f: os.path.isfile(f), args))
-		for badFile in badFiles:
-			printe(f'File "{badFile}" does not exist')
-		return 126
+	arguments:argparse.Namespace = parseArguments(args)
 
-	if not all(list(map(lambda arg: os.path.isfile(arg), args))):
-		printe('Input files must exist')
-		badFiles:[str] = list(filter(lambda f: os.path.isfile(f), args))
-		for badFile in badFiles:
-			printe(f'File "{badFile}" does not exist')
-		return 126
+	inputString:str
+	if arguments.useStdin:
+		inputString = input()
+	else:
+		if arguments.inputFile is not None:
+			if os.path.isfile(arguments.inputFile):
+				with open(arguments.inputFile, 'r+') as i:
+					inputString = i.read()
+			else:
+				printe(f'File "{arguments.inputFile}" does not exist')
+				return 126
+		else:
+			printe('Please specify an input file')
+			return 1
 
-	troffArgumentParser:TroffArgumentParser = TroffArgumentParser(json=json.loads(input()))
-	print(troffArgumentParser.toTroff(), end='')
+	try:
+		jsonDict:dict = json.loads(inputString)
+	except json.decoder.JSONDecodeError:
+		printe('Could not decode JSON input')
+		return 1
+
+	troffArgumentParser:TroffArgumentParser = TroffArgumentParser(json=jsonDict)
+
+	# Output
+	outputString:str = troffArgumentParser.toTroff()
+	printe(arguments.outputFile == sys.stdout)
+	if arguments.outputFile == sys.stdout:
+		print(outputString, end='')
+	else:
+		with open(arguments.outputFile, 'w+') as o:
+			o.write(outputString)
 
 	return 0
 
