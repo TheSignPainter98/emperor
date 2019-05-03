@@ -54,7 +54,7 @@ $(COMPRESSED_MAN_FILE): $(MAN_FILE)
 man: $(MAN_FILE)
 
 $(MAN_FILE): $(OUTPUT_FILE) $(MANGEN)
-	./emperor -* | $(MANGEN) > $(MAN_FILE)
+	./emperor -* | $(MANGEN) - > $(MAN_FILE)
 
 $(MANGEN):
 	+@$(MAKE) -C $(MANGEN_LOCATION) install
